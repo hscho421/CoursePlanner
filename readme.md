@@ -67,7 +67,6 @@
 
 ## 🎨 Screenshots
 
-_Add screenshots or a GIF of the app here for better presentation._
 
 ---
 
