@@ -39,7 +39,6 @@
 
 - Python 3.x
 - Flask
-- (List any other required Python packages, e.g., `pandas`, `flask-cors`, etc.)
 
 ### 💻 Local Setup
 
