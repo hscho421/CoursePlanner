@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Academic Calendar - CoursePilot</title>
+    <link rel="stylesheet" href="../css/mainpage.css">
+    <link rel="stylesheet" href="../css/footer.css">
+    <style>
+        /* Calendar specific styles */
+        .calendar-container {
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .calendar-header h1 {
+            color: #0D1B40;
+            margin: 0;
+        }
+
+        .calendar-filter {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .filter-btn {
+            background-color: #f5f5f5;
+            border: 1px solid #ddd;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            color: #333;
+            transition: all 0.3s;
+        }
+
+        .filter-btn:hover {
+            background-color: #e0e0e0;
+        }
+
+        .filter-btn.active {
+            background-color: #0D1B40;
+            color: white;
+            border-color: #0D1B40;
+        }
+
+        .semester-section {
+            margin-bottom: 30px;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid #e0e0e0;
+        }
+
+        .semester-header {
+            background-color: #0D1B40;
+            color: white;
+            padding: 15px;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .semester-dates {
+            padding: 10px 15px;
+            background-color: #f5f7fa;
+            font-style: italic;
+            color: #555;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .calendar-events {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        .calendar-events th, .calendar-events td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .calendar-events th {
+            background-color: #f5f7fa;
+            font-weight: bold;
+            color: #0D1B40;
+        }
+
+        .calendar-events tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        .calendar-events tr:hover {
+            background-color: #f0f0f0;
+        }
+
+        .date-column {
+            width: 130px;
+        }
+
+        .event-type {
+            width: 150px;
+            font-weight: bold;
+        }
+
+        .event-registration {
+            background-color: #E6F7FF;
+        }
+
+        .event-deadline {
+            background-color: #FFF3E0;
+        }
+
+        .event-academic {
+            background-color: #F0F4FF;
+        }
+
+        .event-holiday {
+            background-color: #F9FFF0;
+        }
+
+        .event-tag {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-right: 5px;
+        }
+
+        .tag-registration {
+            background-color: #E6F7FF;
+            color: #0D6EFD;
+        }
+
+        .tag-deadline {
+            background-color: #FFF3E0;
+            color: #FD7E14;
+        }
+
+        .tag-academic {
+            background-color: #F0F4FF;
+            color: #0D1B40;
+        }
+
+        .tag-holiday {
+            background-color: #F9FFF0;
+            color: #28A745;
+        }
+
+        .download-calendar {
+            display: inline-block;
+            background-color: #6987E8;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+            margin-top: 20px;
+            transition: background-color 0.3s;
+        }
+
+        .download-calendar:hover {
+            background-color: #5A78D9;
+        }
+
+        @media (max-width: 768px) {
+            .calendar-filter {
+                flex-wrap: wrap;
+            }
+            
+            .date-column {
+                width: 100px;
+            }
+            
+            .event-type {
+                width: 100px;
+            }
+            
+            .calendar-events th, .calendar-events td {
+                padding: 8px 10px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <a href="../html/mainpage.html"><img src="../asset/logo.png" alt="CoursePilot Logo"></a>
+        </div>
+        <nav class="navbar">
+            <a href="../html/major_select.html">Course Planner</a>
+            <a href="../html/course_explore.html">Course Explorer</a>
+        </nav>
+    </header>
+
+    <main>
+        <div class="calendar-container">
+            <div class="calendar-header">
+                <h1>Academic Calendar 2024-2025</h1>
+                <select id="academic-year-select">
+                    <option value="2024-2025">2024-2025</option>
+                    <option value="2025-2026">2025-2026</option>
+                </select>
+            </div>
+            
+            <div class="calendar-filter">
+                <button class="filter-btn active" data-filter="all">All Events</button>
+                <button class="filter-btn" data-filter="registration">Registration</button>
+                <button class="filter-btn" data-filter="deadline">Deadlines</button>
+                <button class="filter-btn" data-filter="academic">Academic Events</button>
+                <button class="filter-btn" data-filter="holiday">Holidays</button>
+            </div>
+            
+            <!-- Fall Semester -->
+            <div class="semester-section">
+                <div class="semester-header">Fall Semester 2024</div>
+                <div class="semester-dates">August 26, 2024 - December 18, 2024</div>
+                
+                <table class="calendar-events">
+                    <thead>
+                        <tr>
+                            <th class="date-column">Date</th>
+                            <th class="event-type">Event Type</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="event-registration">
+                            <td>Aug 5-23</td>
+                            <td><span class="event-tag tag-registration">Registration</span></td>
+                            <td>Fall Registration Period</td>
+                        </tr>
+                        <tr class="event-academic">
+                            <td>Aug 26</td>
+                            <td><span class="event-tag tag-academic">Academic</span></td>
+                            <td>Instruction Begins</td>
+                        </tr>
+                        <tr class="event-holiday">
+                            <td>Sep 2</td>
+                            <td><span class="event-tag tag-holiday">Holiday</span></td>
+                            <td>Labor Day (no classes)</td>
+                        </tr>
+                        <tr class="event-deadline">
+                            <td>Sep 9</td>
+                            <td><span class="event-tag tag-deadline">Deadline</span></td>
+                            <td>Last day to add a course without department approval</td>
+                        </tr>
+                        <tr class="event-deadline">
+                            <td>Oct 18</td>
+                            <td><span class="event-tag tag-deadline">Deadline</span></td>
+                            <td>Last day to drop a course without a "W" grade</td>
+                        </tr>
+                        <tr class="event-academic">
+                            <td>Oct 14-15</td>
+                            <td><span class="event-tag tag-academic">Academic</span></td>
+                            <td>Fall Break (no classes)</td>
+                        </tr>
+                        <tr class="event-registration">
+                            <td>Oct 28-Nov 15</td>
+                            <td><span class="event-tag tag-registration">Registration</span></td>
+                            <td>Spring Registration Period</td>
+                        </tr>
+                        <tr class="event-deadline">
+                            <td>Nov 1</td>
+                            <td><span class="event-tag tag-deadline">Deadline</span></td>
+                            <td>Last day to drop a course with a "W" grade</td>
+                        </tr>
+                        <tr class="event-holiday">
+                            <td>Nov 23-Dec 1</td>
+                            <td><span class="event-tag tag-holiday">Holiday</span></td>
+                            <td>Thanksgiving Break (no classes)</td>
+                        </tr>
+                        <tr class="event-academic">
+                            <td>Dec 11</td>
+                            <td><span class="event-tag tag-academic">Academic</span></td>
+                            <td>Last day of instruction</td>
+                        </tr>
+                        <tr class="event-academic">
+                            <td>Dec 13-20</td>
+                            <td><span class="event-tag tag-academic">Academic</span></td>
+                            <td>Final Examinations</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Spring Semester -->
+            <div class="semester-section">
+                <div class="semester-header">Spring Semester 2025</div>
+                <div class="semester-dates">January 21, 2025 - May 14, 2025</div>
+                
+                <table class="calendar-events">
+                    <thead>
+                        <tr>
+                            <th class="date-column">Date</th>
+                            <th class="event-type">Event Type</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="event-holiday">
+                            <td>Jan 20</td>
+                            <td><span class="event-tag tag-holiday">Holiday</span></td>
+                            <td>Martin Luther King Jr. Day (no classes)</td>
+                        </tr>
+                        <tr class="event-academic">
+                            <td>Jan 21</td>
+                            <td><span class="event-tag tag-academic">Academic</span></td>
+                            <td>Instruction Begins</td>
+                        </tr>
+                        <tr class="event-deadline">
+                            <td>Feb 3</td>
+                            <td><span class="event-tag tag-deadline">Deadline</span></td>
+                            <td>Last day to add a course without department approval</td>
+                        </tr>
+                        <tr class="event-holiday">
+                            <td>Mar 15-23</td>
+                            <td><span class="event-tag tag-holiday">Holiday</span></td>
+                            <td>Spring Break (no classes)</td>
+                        </tr>
+                        <tr class="event-deadline">
+                            <td>Mar 28</td>
+                            <td><span class="event-tag tag-deadline">Deadline</span></td>
+                            <td>Last day to drop a course with a "W" grade</td>
+                        </tr>
+                        <tr class="event-registration">
+                            <td>Apr 1-19</td>
+                            <td><span class="event-tag tag-registration">Registration</span></td>
+                            <td>Summer/Fall Registration Period</td>
+                        </tr>
+                        <tr class="event-academic">
+                            <td>May 7</td>
+                            <td><span class="event-tag tag-academic">Academic</span></td>
+                            <td>Last day of instruction</td>
+                        </tr>
+                        <tr class="event-academic">
+                            <td>May 9-16</td>
+                            <td><span class="event-tag tag-academic">Academic</span></td>
+                            <td>Final Examinations</td>
+                        </tr>
+                        <tr class="event-academic">
+                            <td>May 18</td>
+                            <td><span class="event-tag tag-academic">Academic</span></td>
+                            <td>Commencement</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Summer Semester -->
+            <div class="semester-section">
+                <div class="semester-header">Summer Semester 2025</div>
+                <div class="semester-dates">May 26, 2025 - August 8, 2025</div>
+                
+                <table class="calendar-events">
+                    <thead>
+                        <tr>
+                            <th class="date-column">Date</th>
+                            <th class="event-type">Event Type</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="event-holiday">
+                            <td>May 26</td>
+                            <td><span class="event-tag tag-holiday">Holiday</span></td>
+                            <td>Memorial Day (no classes)</td>
+                        </tr>
+                        <tr class="event-academic">
+                            <td>May 27</td>
+                            <td><span class="event-tag tag-academic">Academic</span></td>
+                            <td>First 4-week and 8-week sessions begin</td>
+                        </tr>
+                        <tr class="event-deadline">
+                            <td>May 30</td>
+                            <td><span class="event-tag tag-deadline">Deadline</span></td>
+                            <td>Last day to add/drop first 4-week courses</td>
+                        </tr>
+                        <tr class="event-holiday">
+                            <td>Jul 4</td>
+                            <td><span class="event-tag tag-holiday">Holiday</span></td>
+                            <td>Independence Day (no classes)</td>
+                        </tr>
+                        <tr class="event-academic">
+                            <td>Jun 23</td>
+                            <td><span class="event-tag tag-academic">Academic</span></td>
+                            <td>Second 4-week session begins</td>
+                        </tr>
+                        <tr class="event-academic">
+                            <td>Jul 21</td>
+                            <td><span class="event-tag tag-academic">Academic</span></td>
+                            <td>Third 4-week session begins</td>
+                        </tr>
+                        <tr class="event-academic">
+                            <td>Aug 8</td>
+                            <td><span class="event-tag tag-academic">Academic</span></td>
+                            <td>Summer session ends</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <a href="#" class="download-calendar">Download Calendar (iCal)</a>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="footer-container">
+            <div class="footer-logo">
+                <img src="../asset/logo.png" alt="CoursePilot Logo">
+                <p>Navigating your academic journey</p>
+            </div>
+            
+            <div class="footer-links">
+                <div class="footer-col">
+                    <h4>Features</h4>
+                    <ul>
+                        <li><a href="../html/course_explore.html">Course Explorer</a></li>
+                        <li><a href="../html/major_select.html">Course Planner</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-col">
+                    <h4>Resources</h4>
+                    <ul>
+                        <li><a href="../html/academic_calendar.html">Academic Calendar</a></li>
+                        <li><a href="../html/faq.html">FAQ</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-col">
+                    <h4>About</h4>
+                    <ul>
+                        <li><a href="../html/privacy_policy.html">Privacy Policy</a></li>
+                        <li><a href="../html/terms.html">Terms of Service</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="footer-social">
+                <h4>Connect With Us</h4>
+                <div class="social-icons">
+                    <a href="#" class="social-icon"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" class="social-icon"><i class="fab fa-twitter"></i></a>
+                    <a href="#" class="social-icon"><i class="fab fa-instagram"></i></a>
+                    <a href="#" class="social-icon"><i class="fab fa-linkedin-in"></i></a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer-bottom">
+            <p>&copy; 2025 CoursePilot. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Filter functionality
+            const filterButtons = document.querySelectorAll('.filter-btn');
+            const eventRows = document.querySelectorAll('.calendar-events tbody tr');
+            
+            filterButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // Remove active class from all buttons
+                    filterButtons.forEach(btn => btn.classList.remove('active'));
+                    
+                    // Add active class to clicked button
+                    this.classList.add('active');
+                    
+                    const filter = this.getAttribute('data-filter');
+                    
+                    // Show/hide events based on filter
+                    eventRows.forEach(row => {
+                        if (filter === 'all') {
+                            row.style.display = '';
+                        } else {
+                            if (row.classList.contains('event-' + filter)) {
+                                row.style.display = '';
+                            } else {
+                                row.style.display = 'none';
+                            }
+                        }
+                    });
+                });
+            });
+            
+            // Year select functionality
+            const yearSelect = document.getElementById('academic-year-select');
+            yearSelect.addEventListener('change', function() {
+                alert('Calendar data for ' + this.value + ' would be loaded here. This is a demo.');
+            });
+        });
+    </script>
+</body>
+</html>

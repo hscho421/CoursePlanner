@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terms and Conditions - CoursePilot</title>
+    <style>
+        /* Base styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+
+        :root {
+            --primary: #0D1B40;      /* Deep blue - main color */
+            --secondary: #E35D0D;    /* Orange accent */
+            --tertiary: #6987E8;     /* Light blue for buttons */
+            --light: #f8f9fc;        /* Light background */
+            --dark: #333;            /* Text color */
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg,#94a8e9 50%, #E35D0D 100%);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            color: var(--dark);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        header {
+            background-color: transparent;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 5%;
+            height: 80px;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo img {
+            height: 60px;
+            transition: transform 0.3s;
+        }
+
+        .logo img:hover {
+            transform: scale(1.05);
+        }
+
+        .navbar {
+            display: flex;
+            gap: 30px;
+        }
+
+        .navbar a {
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+            position: relative;
+            padding: 8px 0;
+            transition: color 0.3s;
+        }
+
+        .navbar a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: 0;
+            left: 0;
+            background-color: var(--secondary);
+            transition: width 0.3s;
+        }
+
+        .navbar a:hover {
+            color: var(--secondary);
+        }
+
+        .navbar a:hover::after {
+            width: 100%;
+        }
+
+        /* Main content styles */
+        main {
+            flex-grow: 1;
+            padding: 40px 5%;
+        }
+
+        .terms-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 10px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .terms-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .terms-header h1 {
+            color: var(--primary);
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+        }
+
+        .terms-header p {
+            color: #666;
+            font-size: 1rem;
+        }
+
+        .terms-content h2 {
+            color: var(--primary);
+            margin: 30px 0 15px;
+            font-size: 1.5rem;
+            border-bottom: 2px solid var(--tertiary);
+            padding-bottom: 10px;
+        }
+
+        .terms-content h3 {
+            color: var(--secondary);
+            margin: 20px 0 10px;
+            font-size: 1.2rem;
+        }
+
+        .terms-content p {
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+
+        .terms-content ul, .terms-content ol {
+            margin-bottom: 15px;
+            padding-left: 20px;
+        }
+
+        .terms-content li {
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+
+        .last-updated {
+            margin-top: 40px;
+            text-align: center;
+            font-style: italic;
+            color: #666;
+        }
+
+        /* Footer styles */
+        .site-footer {
+            background-color: var(--primary);
+            color: white;
+            padding-top: 60px;
+            margin-top: 40px;
+        }
+
+        .footer-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .footer-logo {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .footer-logo img {
+            height: 50px;
+            margin-bottom: 15px;
+        }
+
+        .footer-col h4 {
+            margin-bottom: 20px;
+            font-size: 18px;
+        }
+
+        .footer-col ul {
+            list-style: none;
+        }
+
+        .footer-col ul li {
+            margin-bottom: 15px;
+        }
+
+        .footer-col ul li a {
+            color: #ccc;
+            text-decoration: none;
+        }
+
+        .footer-col ul li a:hover {
+            color: white;
+        }
+
+        .footer-social h4 {
+            margin-bottom: 20px;
+            font-size: 18px;
+        }
+
+        .social-icons {
+            display: flex;
+            gap: 15px;
+        }
+
+        .social-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            height: 40px;
+            width: 40px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            color: white;
+            transition: all 0.3s;
+        }
+
+        .social-icon:hover {
+            background-color: var(--secondary);
+            transform: translateY(-3px);
+        }
+
+        .footer-bottom {
+            margin-top: 40px;
+            padding: 20px 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .terms-container {
+                padding: 30px 20px;
+            }
+            
+            .terms-header h1 {
+                font-size: 2rem;
+            }
+            
+            .navbar {
+                gap: 15px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .navbar {
+                gap: 10px;
+            }
+            
+            .terms-header h1 {
+                font-size: 1.8rem;
+            }
+            
+            .terms-content h2 {
+                font-size: 1.3rem;
+            }
+            
+            .footer-container {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+            
+            .footer-logo {
+                align-items: center;
+            }
+        }
+
+        /* For the back to top button */
+        .back-to-top {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: var(--tertiary);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s;
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .back-to-top.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .back-to-top:hover {
+            background-color: var(--secondary);
+            transform: translateY(-3px);
+        }
+    </style>
+    <link rel="stylesheet" href="../css/footer.css">
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <a href="../html/mainpage.html"><img src="../asset/logo.png" alt="CoursePilot Logo"></a>
+        </div>
+        <nav class="navbar">
+            <a href="../html/major_select.html">Course Planner</a>
+            <a href="../html/course_explore.html">Course Explorer</a>
+        </nav>
+    </header>
+
+    <main>
+        <div class="terms-container">
+            <div class="terms-header">
+                <h1>Terms and Conditions</h1>
+                <p>Please read these terms carefully before using CoursePilot services</p>
+            </div>
+            
+            <div class="terms-content">
+                <h2>1. Acceptance of Terms</h2>
+                <p>Welcome to CoursePilot. By accessing or using our website, mobile applications, or any other services provided by CoursePilot (collectively, the "Services"), you agree to be bound by these Terms and Conditions ("Terms"). If you do not agree to these Terms, please do not use our Services.</p>
+                
+                <h2>2. Description of Services</h2>
+                <p>CoursePilot provides tools and information designed to help students plan their academic courses, explore degree requirements, and manage their educational journeys. Our Services include, but are not limited to:</p>
+                <ul>
+                    <li>Course planning and scheduling tools</li>
+                    <li>Degree requirement tracking</li>
+                    <li>Course exploration and discovery</li>
+                    <li>Academic resource recommendations</li>
+                </ul>
+                <p>While we strive to provide accurate and up-to-date information, CoursePilot is intended to be used as a supplementary tool only. Students should always verify course information, degree requirements, and academic plans with their official academic advisors and institutional resources.</p>
+                
+                <h2>3. User Accounts</h2>
+                <h3>3.1 Account Creation</h3>
+                <p>To access certain features of our Services, you may need to create a user account. When creating an account, you agree to provide accurate, current, and complete information. You are responsible for maintaining the confidentiality of your account credentials and for all activities that occur under your account.</p>
+                
+                <h3>3.2 Account Security</h3>
+                <p>You are solely responsible for maintaining the security of your account and password. You agree to notify CoursePilot immediately of any unauthorized use of your account or any other breach of security.</p>
+                
+                <h2>4. User Conduct</h2>
+                <p>When using our Services, you agree not to:</p>
+                <ul>
+                    <li>Violate any applicable laws or regulations</li>
+                    <li>Infringe upon the intellectual property rights of others</li>
+                    <li>Use the Services to transmit any harmful code, malware, or other disruptive content</li>
+                    <li>Attempt to gain unauthorized access to any part of the Services or systems</li>
+                    <li>Use the Services for any illegal or unauthorized purpose</li>
+                    <li>Interfere with or disrupt the Services or servers connected to the Services</li>
+                    <li>Collect or harvest any information from other users without their consent</li>
+                    <li>Impersonate any person or entity or falsely state your affiliation with a person or entity</li>
+                </ul>
+                
+                <h2>5. Intellectual Property</h2>
+                <h3>5.1 Our Content</h3>
+                <p>The content, features, and functionality of our Services, including but not limited to text, graphics, logos, icons, images, audio clips, digital downloads, data compilations, software, and the design, selection, and arrangement thereof, are owned by CoursePilot, its licensors, or other content providers and are protected by copyright, trademark, and other intellectual property laws.</p>
+                
+                <h3>5.2 Limited License</h3>
+                <p>Subject to these Terms, CoursePilot grants you a limited, non-exclusive, non-transferable, revocable license to access and use the Services for your personal, non-commercial use. This license does not include:</p>
+                <ul>
+                    <li>Any resale or commercial use of the Services or content</li>
+                    <li>Any derivative use of the Services or content</li>
+                    <li>Any downloading or copying of account information for the benefit of another merchant</li>
+                    <li>Any use of data mining, robots, or similar data gathering and extraction tools</li>
+                </ul>
+                
+                <h2>6. User Content</h2>
+                <p>By submitting, posting, or displaying content on or through our Services ("User Content"), you grant CoursePilot a worldwide, non-exclusive, royalty-free license to use, copy, modify, create derivative works based on, distribute, publicly display, and publicly perform such User Content for the purposes of operating and providing our Services.</p>
+                <p>You represent and warrant that:</p>
+                <ul>
+                    <li>You own or have the necessary rights to such User Content and have the right to grant the license set forth above</li>
+                    <li>The posting of your User Content does not violate the privacy rights, publicity rights, copyrights, contract rights, or any other rights of any person</li>
+                </ul>
+                
+                <h2>7. Privacy</h2>
+                <p>Your privacy is important to us. Our Privacy Policy explains how we collect, use, and disclose information about you. By using our Services, you consent to the collection, use, and disclosure of your information as described in our Privacy Policy.</p>
+                
+                <h2>8. Disclaimers</h2>
+                <p>THE SERVICES ARE PROVIDED "AS IS" AND "AS AVAILABLE" WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, TITLE, AND NON-INFRINGEMENT.</p>
+                <p>CoursePilot does not warrant that:</p>
+                <ul>
+                    <li>The Services will be uninterrupted or error-free</li>
+                    <li>The Services will meet your specific requirements</li>
+                    <li>The quality, accuracy, timeliness, completeness, or reliability of any information obtained through the Services</li>
+                </ul>
+                <p>Educational information provided through our Services is intended to be informational only. CoursePilot is not an official educational institution and does not guarantee the accuracy or completeness of course information, prerequisites, degree requirements, or other academic information. Always consult with your academic advisor or institution for official guidance.</p>
+                
+                <h2>9. Limitation of Liability</h2>
+                <p>IN NO EVENT SHALL CoursePilot, ITS OFFICERS, DIRECTORS, EMPLOYEES, OR AGENTS, BE LIABLE TO YOU FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, PUNITIVE, OR CONSEQUENTIAL DAMAGES WHATSOEVER RESULTING FROM:</p>
+                <ul>
+                    <li>Your use of or inability to use our Services</li>
+                    <li>Any unauthorized access to or use of our servers and/or any personal information stored therein</li>
+                    <li>Any interruption or cessation of transmission to or from our Services</li>
+                    <li>Any bugs, viruses, trojan horses, or the like, which may be transmitted to or through our Services by any third party</li>
+                    <li>Any errors or omissions in any content or for any loss or damage of any kind incurred as a result of your use of any content posted, emailed, transmitted, or otherwise made available via the Services</li>
+                </ul>
+                <p>This limitation of liability applies whether the alleged liability is based on contract, tort, negligence, strict liability, or any other basis, even if CoursePilot has been advised of the possibility of such damage.</p>
+                
+                <h2>10. Indemnification</h2>
+                <p>You agree to defend, indemnify, and hold harmless CoursePilot, its officers, directors, employees, and agents, from and against any and all claims, damages, obligations, losses, liabilities, costs or debt, and expenses (including but not limited to attorney's fees) arising from:</p>
+                <ul>
+                    <li>Your use of and access to the Services</li>
+                    <li>Your violation of any term of these Terms</li>
+                    <li>Your violation of any third-party right, including without limitation any copyright, property, or privacy right</li>
+                    <li>Any claim that your User Content caused damage to a third party</li>
+                </ul>
+                <p>This defense and indemnification obligation will survive these Terms and your use of the Services.</p>
+                
+                <h2>11. Termination</h2>
+                <p>CoursePilot may terminate or suspend your access to all or part of the Services, without notice, for any conduct that CoursePilot, in its sole discretion, believes is in violation of any applicable law, is in breach of these Terms, or is harmful to the interests of other users, third parties, or CoursePilot.</p>
+                <p>Upon termination, your right to use the Services will immediately cease. If you wish to terminate your account, you may simply discontinue using the Services or contact us to request account deletion.</p>
+                
+                <h2>12. Changes to Terms</h2>
+                <p>CoursePilot reserves the right, at our sole discretion, to modify or replace these Terms at any time. If a revision is material, we will provide at least 30 days' notice prior to any new terms taking effect. What constitutes a material change will be determined at our sole discretion.</p>
+                <p>By continuing to access or use our Services after those revisions become effective, you agree to be bound by the revised Terms. If you do not agree to the new Terms, please stop using the Services.</p>
+                
+                <h2>13. Governing Law</h2>
+                <p>These Terms shall be governed and construed in accordance with the laws of [Your Jurisdiction], without regard to its conflict of law provisions.</p>
+                <p>Our failure to enforce any right or provision of these Terms will not be considered a waiver of those rights. If any provision of these Terms is held to be invalid or unenforceable by a court, the remaining provisions of these Terms will remain in effect.</p>
+                
+                <h2>14. Contact Information</h2>
+                <p>If you have any questions about these Terms, please contact us at:</p>
+                <p>Email: support@coursepilot.com<br>
+                Address: CoursePilot Headquarters, 123 Education Lane, Academic City, AC 12345</p>
+                
+                <p class="last-updated">Last Updated: April 8, 2025</p>
+            </div>
+        </div>
+        
+        <button class="back-to-top" id="backToTop" title="Back to top">↑</button>
+    </main>
+
+    <footer class="site-footer">
+        <div class="footer-container">
+            <div class="footer-logo">
+                <img src="../asset/logo.png" alt="CoursePilot Logo">
+                <p>Navigating your academic journey</p>
+            </div>
+            
+            <div class="footer-links">
+                <div class="footer-col">
+                    <h4>Features</h4>
+                    <ul>
+                        <li><a href="../html/course_explore.html">Course Explorer</a></li>
+                        <li><a href="../html/major_select.html">Course Planner</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-col">
+                    <h4>Resources</h4>
+                    <ul>
+                        <li><a href="../html/academic_calendar.html">Academic Calendar</a></li>
+                        <li><a href="../html/faq.html">FAQ</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-col">
+                    <h4>About</h4>
+                    <ul>
+                        <li><a href="../html/privacy_policy.html">Privacy Policy</a></li>
+                        <li><a href="../html/terms.html">Terms of Service</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="footer-social">
+                <h4>Connect With Us</h4>
+                <div class="social-icons">
+                    <a href="#" class="social-icon"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" class="social-icon"><i class="fab fa-twitter"></i></a>
+                    <a href="#" class="social-icon"><i class="fab fa-instagram"></i></a>
+                    <a href="#" class="social-icon"><i class="fab fa-linkedin-in"></i></a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer-bottom">
+            <p>&copy; 2025 CoursePilot. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Back to top button functionality
+        const backToTopButton = document.getElementById('backToTop');
+        
+        window.addEventListener('scroll', () => {
+            if (window.pageYOffset > 300) {
+                backToTopButton.classList.add('show');
+            } else {
+                backToTopButton.classList.remove('show');
+            }
+        });
+        
+        backToTopButton.addEventListener('click', () => {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+    </script>
+</body>
+</html>

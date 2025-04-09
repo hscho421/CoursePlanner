@@ -1,0 +1,213 @@
+/* Base styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Arial', sans-serif;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f5f7fa;
+    margin: 0;
+    padding: 0;
+}
+
+header {
+    background-color: #0D1B40;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 5%;
+    height: 80px;
+}
+
+.logo img {
+    height: 60px;
+}
+
+.navbar a {
+    color: white;
+    text-decoration: none;
+    margin-left: 30px;
+    font-weight: bold;
+    transition: color 0.3s;
+}
+
+.navbar a:hover {
+    color: #E35D0D;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 0 20px;
+}
+
+.main-title {
+    color: #0D1B40;
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 28px;
+}
+
+/* Form elements */
+label {
+    font-size: 18px;
+    display: block;
+    margin: 20px 0 10px;
+    font-weight: bold;
+    color: #0D1B40;
+}
+
+input[type="text"] {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 16px;
+    margin-bottom: 15px;
+    transition: border-color 0.3s;
+}
+
+input[type="text"]:focus {
+    outline: none;
+    border-color: #E35D0D;
+    box-shadow: 0 0 5px rgba(227, 93, 13, 0.3);
+}
+
+/* Selection and buttons */
+.selection {
+    margin: 25px 0;
+    display: flex;
+    justify-content: center;
+}
+
+.search-btn {
+    background-color: #E35D0D;
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    font-size: 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s;
+    min-width: 150px;
+}
+
+.search-btn:hover {
+    background-color: #C14B0B;
+}
+
+/* Course results styling */
+.course-result {
+    background-color: white;
+    border-radius: 10px;
+    padding: 25px;
+    margin-top: 30px;
+    text-align: left;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.course-result:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.course-result h2 {
+    color: #E35D0D;
+    margin-bottom: 15px;
+    font-size: 24px;
+    border-bottom: 2px solid #f0f0f0;
+    padding-bottom: 10px;
+}
+
+.course-result p {
+    margin: 12px 0;
+    line-height: 1.6;
+    font-size: 16px;
+}
+
+.course-result .label {
+    font-weight: bold;
+    color: #0D1B40;
+    display: inline-block;
+    min-width: 120px;
+}
+
+.gpa-highlight {
+    background-color: #f0f7ff;
+    padding: 15px;
+    border-radius: 8px;
+    margin-top: 20px;
+    border-left: 4px solid #0D1B40;
+    transition: background-color 0.3s ease;
+}
+
+.gpa-highlight:hover {
+    background-color: #e6f0ff;
+}
+
+/* Status messages */
+.error-message {
+    color: white;
+    background-color: #ff4d4d;
+    padding: 12px;
+    border-radius: 5px;
+    margin: 20px 0;
+    font-weight: bold;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(255, 77, 77, 0.2);
+}
+
+.loading {
+    margin: 20px 0;
+    font-style: italic;
+    color: #555;
+    text-align: center;
+    background-color: #f9f9f9;
+    padding: 15px;
+    border-radius: 5px;
+    border-left: 4px solid #0D1B40;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .navbar a {
+        margin-left: 15px;
+        font-size: 14px;
+    }
+    
+    .main-title {
+        font-size: 24px;
+    }
+    
+    input[type="text"] {
+        padding: 10px;
+    }
+    
+    .course-result {
+        padding: 20px;
+    }
+    
+    .course-result h2 {
+        font-size: 20px;
+    }
+    
+    .course-result .label {
+        min-width: 100px;
+    }
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.course-result, .error-message, .loading {
+    animation: fadeIn 0.5s ease;
+}

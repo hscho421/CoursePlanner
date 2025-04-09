@@ -1,0 +1,249 @@
+/* Base styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Arial', sans-serif;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: transparent;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background: linear-gradient(135deg, #94a8e9 50%, #E35D0D 100%);
+    background-size: 400% 400%;
+    animation: gradientBG 15s ease infinite;
+}
+
+@keyframes gradientBG {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+header {
+    background-color: transparent;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 5%;
+    height: 80px;
+}
+
+.logo img {
+    height: 60px;
+}
+
+.navbar a {
+    color: white;
+    text-decoration: none;
+    margin-left: 30px;
+    font-weight: bold;
+    transition: color 0.3s;
+}
+
+.navbar a:hover {
+    color: #E35D0D;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 0 20px;
+}
+
+.main-title {
+    color: #0D1B40;
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 28px;
+}
+
+/* Form container */
+.form-container {
+    background-color: white;
+    border-radius: 10px;
+    padding: 30px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+/* Form elements */
+label {
+    font-size: 18px;
+    display: block;
+    margin: 20px 0 10px;
+    font-weight: bold;
+    color: #0D1B40;
+}
+
+.select-wrapper {
+    position: relative;
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+select {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background-color: white;
+    font-size: 16px;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    cursor: pointer;
+}
+
+select:focus {
+    outline: none;
+    border-color: #E35D0D;
+}
+
+.select-wrapper::after {
+    content: '▼';
+    font-size: 12px;
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    color: #555;
+}
+
+.loading-spinner {
+    position: absolute;
+    right: 40px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 14px;
+    color: #555;
+}
+
+/* Selection buttons */
+.selection {
+    margin: 25px 0;
+}
+
+.buttons {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+}
+
+.year-btn {
+    background-color: #f0f0f0;
+    color: #333;
+    border: none;
+    padding: 12px 20px;
+    font-size: 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s;
+    flex-grow: 1;
+}
+
+.year-btn:hover {
+    background-color: #e0e0e0;
+}
+
+.year-btn.selected {
+    background-color: #E35D0D;
+    color: white;
+}
+
+/* Transfer credits section */
+.transfer-credits {
+    background-color: #f9f9f9;
+    padding: 20px;
+    border-radius: 8px;
+    margin: 25px 0;
+    border-left: 4px solid #0D1B40;
+}
+
+.transfer-credits input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 16px;
+    margin: 10px 0;
+}
+
+.transfer-credits input:focus {
+    outline: none;
+    border-color: #E35D0D;
+}
+
+.transfer-credits p {
+    margin-top: 8px;
+    font-size: 14px;
+    color: #666;
+    font-style: italic;
+}
+
+/* Buttons */
+.btn-next {
+    background-color: #E35D0D;
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    font-size: 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s;
+    width: 100%;
+    margin-top: 20px;
+}
+
+.btn-next:hover {
+    background-color: #C14B0B;
+}
+
+/* Error message */
+.error-message {
+    color: white;
+    background-color: #ff4d4d;
+    padding: 12px;
+    border-radius: 5px;
+    margin: 15px 0;
+    font-weight: bold;
+    text-align: center;
+}
+
+.hidden {
+    display: none;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .navbar a {
+        margin-left: 15px;
+        font-size: 14px;
+    }
+    
+    .main-title {
+        font-size: 24px;
+    }
+    
+    .form-container {
+        padding: 20px;
+    }
+    
+    .buttons {
+        flex-direction: column;
+    }
+    
+    .year-btn {
+        width: 100%;
+    }
+}

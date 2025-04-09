@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Major Selection - CoursePilot</title>
+    <link rel="stylesheet" href="../css/major_select.css">
+    <link rel="stylesheet" href="../css/footer.css">
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <a href="../html/mainpage.html"><img src="../asset/logo.png" alt="CoursePilot Logo"></a>
+        </div>
+        <nav class="navbar">
+            <a href="../html/major_select.html">Course Planner</a>
+            <a href="../html/course_explore.html">Course Explorer</a>
+        </nav>
+    </header>
+
+    <main class="container">
+        <div class="form-container">
+            <h1 class="main-title">Enter Your Major in the Grainger College of Engineering</h1>
+            
+            <div id="error-message" class="error-message hidden"></div>
+            
+            <label for="major">What is your major at UIUC?</label>
+            <div class="select-wrapper">
+                <select id="major" name="major">
+                    <option value="">Select your major</option>
+                    <!-- Options will be populated via JavaScript -->
+                </select>
+                <div class="loading-spinner hidden" id="major-loading">Loading...</div>
+            </div>
+
+            <div class="selection">
+                <label>What academic year are you?</label>
+                <div class="buttons">
+                    <button class="year-btn" data-year="freshman">Freshman</button>
+                    <button class="year-btn" data-year="sophomore">Sophomore</button>
+                    <button class="year-btn" data-year="junior">Junior</button>
+                    <button class="year-btn" data-year="senior">Senior</button>
+                </div>
+            </div>
+
+            <div class="selection">
+                <label>What is your expected graduation year?</label>
+                <div class="buttons">
+                    <button class="year-btn" data-grad-year="2025">2025</button>
+                    <button class="year-btn" data-grad-year="2026">2026</button>
+                    <button class="year-btn" data-grad-year="2027">2027</button>
+                    <button class="year-btn" data-grad-year="2028">2028</button>
+                    <button class="year-btn" data-grad-year="2029">2029</button>
+                </div>
+            </div>
+            
+            <!-- New section for transfer credits -->
+            <div class="transfer-credits">
+                <label for="transfer-hours">How many credit hours have you transferred?</label>
+                <input type="number" id="transfer-hours" name="transfer-hours" min="0" max="100" placeholder="0">
+                <p>Enter the number of credit hours transferred from other institutions or AP/IB credits.</p>
+            </div>
+            
+            <button id="next-btn" class="btn-next">Create My Course Plan</button>
+        </div>
+    </main>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Fetch majors for the dropdown
+            fetchMajors();
+            
+            // Year button selection
+            const yearButtons = document.querySelectorAll('.year-btn[data-year]');
+            yearButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // Remove selected class from all buttons in this group
+                    yearButtons.forEach(btn => btn.classList.remove('selected'));
+                    // Add selected class to clicked button
+                    this.classList.add('selected');
+                });
+            });
+            
+            // Graduation year button selection
+            const gradYearButtons = document.querySelectorAll('.year-btn[data-grad-year]');
+            gradYearButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // Remove selected class from all buttons in this group
+                    gradYearButtons.forEach(btn => btn.classList.remove('selected'));
+                    // Add selected class to clicked button
+                    this.classList.add('selected');
+                });
+            });
+            
+            // Transfer hours validation
+            const transferHoursInput = document.getElementById('transfer-hours');
+            transferHoursInput.addEventListener('input', function() {
+                // Ensure the input is a non-negative number
+                let value = parseInt(this.value);
+                if (isNaN(value) || value < 0) {
+                    this.value = 0;
+                } else if (value > 100) {
+                    this.value = 100; // Setting a reasonable maximum
+                }
+            });
+            
+            // Next button functionality
+            const nextButton = document.getElementById('next-btn');
+            const errorMessageElement = document.getElementById('error-message');
+            
+            nextButton.addEventListener('click', function() {
+                // Validate form
+                const majorSelect = document.getElementById('major');
+                const major = majorSelect.value.trim();
+                
+                // Get selected academic year
+                let academicYear = null;
+                yearButtons.forEach(btn => {
+                    if (btn.classList.contains('selected')) {
+                        academicYear = btn.getAttribute('data-year');
+                    }
+                });
+                
+                // Get selected graduation year
+                let gradYear = null;
+                gradYearButtons.forEach(btn => {
+                    if (btn.classList.contains('selected')) {
+                        gradYear = btn.getAttribute('data-grad-year');
+                    }
+                });
+                
+                // Get transfer hours
+                const transferHours = parseInt(transferHoursInput.value) || 0;
+                
+                // Validate required fields
+                if (!major) {
+                    showError('Please select your major');
+                    return;
+                }
+                
+                if (!academicYear) {
+                    showError('Please select your academic year');
+                    return;
+                }
+                
+                if (!gradYear) {
+                    showError('Please select your expected graduation year');
+                    return;
+                }
+                
+                // If validation passes, store the data and redirect
+                const userData = {
+                    major: major,
+                    academicYear: academicYear,
+                    gradYear: gradYear,
+                    transferHours: transferHours
+                };
+                
+                // Store user data in local storage for use in the planner page
+                localStorage.setItem('courseUserData', JSON.stringify(userData));
+                
+                // Redirect to course planner page
+                window.location.href = '../html/course_planner.html';
+            });
+            
+            function showError(message) {
+                errorMessageElement.textContent = message;
+                errorMessageElement.classList.remove('hidden');
+                
+                // Auto-hide the error after 5 seconds
+                setTimeout(() => {
+                    errorMessageElement.classList.add('hidden');
+                }, 5000);
+            }
+        });
+        
+        function fetchMajors() {
+            const majorSelect = document.getElementById('major');
+            const loadingSpinner = document.getElementById('major-loading');
+            
+            // Show loading spinner
+            loadingSpinner.classList.remove('hidden');
+            
+            // Fetch the list of majors from the backend
+            fetch('/majors')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(majors => {
+                    // Clear any existing options except the first one
+                    while (majorSelect.options.length > 1) {
+                        majorSelect.remove(1);
+                    }
+                    
+                    // Add each major as an option
+                    majors.forEach(major => {
+                        const option = document.createElement('option');
+                        option.value = major.major_name;
+                        option.textContent = major.major_name;
+                        majorSelect.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching majors:', error);
+                    // Add a few default majors as fallback
+                    const defaultMajors = [
+                        'Computer Science',
+                        'Electrical Engineering',
+                        'Mechanical Engineering',
+                        'Civil Engineering',
+                        'Computer Engineering'
+                    ];
+                    
+                    defaultMajors.forEach(majorName => {
+                        const option = document.createElement('option');
+                        option.value = majorName;
+                        option.textContent = majorName;
+                        majorSelect.appendChild(option);
+                    });
+                })
+                .finally(() => {
+                    // Hide loading spinner
+                    loadingSpinner.classList.add('hidden');
+                });
+        }
+    </script>
+</body>
+<footer class="site-footer">
+    <div class="footer-container">
+        <div class="footer-logo">
+            <img src="../asset/logo.png" alt="CoursePilot Logo">
+            <p>Navigating your academic journey</p>
+        </div>
+        
+        <div class="footer-links">
+            <div class="footer-col">
+                <h4>Features</h4>
+                <ul>
+                    <li><a href="../html/course_explore.html">Course Explorer</a></li>
+                    <li><a href="../html/major_select.html">Course Planner</a></li>
+                </ul>
+            </div>
+            
+            <div class="footer-col">
+                <h4>Resources</h4>
+                <ul>
+                    <li><a href="../html/academic_calendar.html">Academic Calendar</a></li>
+                    <li><a href="../html/faq.html">FAQ</a></li>
+                </ul>
+            </div>
+            
+            <div class="footer-col">
+                <h4>About</h4>
+                <ul>
+                    <li><a href="../html/privacy_policy.html">Privacy Policy</a></li>
+                    <li><a href="../html/terms.html">Terms of Service</a></li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="footer-social">
+            <h4>Connect With Us</h4>
+            <div class="social-icons">
+                <a href="#" class="social-icon"><i class="fab fa-facebook-f"></i></a>
+                <a href="#" class="social-icon"><i class="fab fa-twitter"></i></a>
+                <a href="#" class="social-icon"><i class="fab fa-instagram"></i></a>
+                <a href="#" class="social-icon"><i class="fab fa-linkedin-in"></i></a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="footer-bottom">
+        <p>&copy; 2025 CoursePilot. All rights reserved.</p>
+    </div>
+</footer>
+</html>

@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course Search - CoursePilot</title>
+    <link rel="stylesheet" href="../css/course_explore.css">
+    <link rel="stylesheet" href="../css/footer.css">
+    <!-- Add Chart.js library -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <a href="../html/mainpage.html"><img src="../asset/logo.png" alt="CoursePilot Logo"></a>
+        </div>
+        <nav class="navbar">
+            <a href="../html/major_select.html">Course Planner</a>
+            <a href="../html/course_explore.html">Course Explorer</a>
+        </nav>
+    </header>
+
+    <main class="container">
+        <h1 class="main-title">Course Search</h1>
+
+        <label for="course">What course are you looking for?</label>
+        <input type="text" id="course" placeholder="Type in your course (e.g. ECE)">
+
+        <label for="course-number">What is the course number?</label>
+        <input type="text" id="course-number" placeholder="Type in your course number (e.g. 101)">
+
+        <div class="selection">
+            <button class="search-btn" id="search-button">Find Course</button>
+        </div>
+        
+        <div id="loading" class="loading" style="display: none;">
+            Searching for course information...
+        </div>
+        
+        <div id="error-message" class="error-message" style="display: none;"></div>
+        
+        <div id="course-result" class="course-result" style="display: none;">
+            <h2 id="course-title"></h2>
+            <p><span class="label">Term:</span> <span id="course-term"></span></p>
+            <p><span class="label">Description:</span> <span id="course-description"></span></p>
+            <p><span class="label">Prerequisites:</span> <span id="course-prerequisites"></span></p>
+            <div class="gpa-highlight">
+                <p><span class="label">Average GPA:</span> <span id="course-gpa"></span></p>
+            </div>
+            
+            <!-- Add grade distribution chart container -->
+            <div class="chart-container" id="grade-chart-container" style="display: none;">
+                <h3 class="chart-title" id="chart-title">Grade Distribution</h3>
+                <canvas id="grade-chart"></canvas>
+                <p class="chart-info" id="grade-chart-info"></p>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchButton = document.getElementById('search-button');
+            const courseInput = document.getElementById('course');
+            const courseNumberInput = document.getElementById('course-number');
+            const loadingElement = document.getElementById('loading');
+            const errorMessageElement = document.getElementById('error-message');
+            const courseResultElement = document.getElementById('course-result');
+            
+            // Elements to display course information
+            const courseTitleElement = document.getElementById('course-title');
+            const courseTermElement = document.getElementById('course-term');
+            const courseDescriptionElement = document.getElementById('course-description');
+            const coursePrerequisitesElement = document.getElementById('course-prerequisites');
+            const courseGpaElement = document.getElementById('course-gpa');
+            
+            // Chart elements
+            const chartContainer = document.getElementById('grade-chart-container');
+            const chartInfo = document.getElementById('grade-chart-info');
+            const chartTitle = document.getElementById('chart-title');
+            
+            // Chart variables
+            let gradeChart = null;
+            
+            // Add event listener to search button
+            searchButton.addEventListener('click', searchCourse);
+            
+            // Add event listeners for Enter key
+            courseInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') searchCourse();
+            });
+            
+            courseNumberInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') searchCourse();
+            });
+            
+            function searchCourse() {
+                const department = courseInput.value.trim();
+                const courseNumber = courseNumberInput.value.trim();
+                
+                // Validate inputs
+                if (!department || !courseNumber) {
+                    showError('Please enter both department and course number');
+                    return;
+                }
+                
+                // Clear previous results and show loading
+                hideError();
+                hideResult();
+                showLoading();
+                
+                // Make API request to your backend for course info
+                fetch(`/course?department=${department}&courseNumber=${courseNumber}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Course not found or server error');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        // Hide loading and display results
+                        hideLoading();
+                        displayCourseInfo(data, department, courseNumber);
+                        
+                        // Fetch grade distribution data
+                        fetchGradeDistribution(department, courseNumber);
+                    })
+                    .catch(error => {
+                        hideLoading();
+                        showError(error.message);
+                    });
+            }
+            
+            function fetchGradeDistribution(department, courseNumber) {
+                fetch(`/grade-distribution?department=${department}&courseNumber=${courseNumber}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            // Hide chart container but still show course info
+                            chartContainer.style.display = 'none';
+                            if (response.status === 404) {
+                                console.log('No grade distribution data available for this course');
+                            } else {
+                                throw new Error('Error fetching grade distribution data');
+                            }
+                            return null;
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data) {
+                            displayGradeDistribution(data, department, courseNumber);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        chartContainer.style.display = 'none';
+                    });
+            }
+            
+            function displayCourseInfo(data, department, courseNumber) {
+                // Set course information
+                courseTitleElement.textContent = `${department.toUpperCase()} ${courseNumber.toUpperCase()}: ${data.title || 'N/A'}`;
+                courseTermElement.textContent = data.term || 'N/A';
+                courseDescriptionElement.textContent = data.description || 'No description available';
+                
+                // Handle prerequisites display
+                if (data.prerequisite) {
+                    coursePrerequisitesElement.textContent = data.prerequisite;
+                } else {
+                    coursePrerequisitesElement.textContent = 'None specified';
+                }
+                
+                // Display GPA
+                courseGpaElement.textContent = data.average_gpa || 'Not available';
+                
+                // Show the result container
+                showResult();
+            }
+            
+            function displayGradeDistribution(data, department, courseNumber) {
+                // Show chart container
+                chartContainer.style.display = 'block';
+                
+                // Update chart title to include course name and number
+                chartTitle.textContent = `Grade Distribution for ${department.toUpperCase()} ${courseNumber.toUpperCase()}`;
+                
+                // Set chart info text
+                chartInfo.textContent = `Total Students: ${data.total_students} | Average GPA: ${data.gpa}`;
+                
+                // Extract data for chart
+                const labels = data.grades.map(item => item.grade);
+                const counts = data.grades.map(item => item.count);
+                
+                // Define colors based on grade (green for As, blue for Bs, etc.)
+                const backgroundColors = labels.map(grade => {
+                    if (grade.startsWith('A')) return 'rgba(75, 192, 75, 0.7)';
+                    if (grade.startsWith('B')) return 'rgba(54, 162, 235, 0.7)';
+                    if (grade.startsWith('C')) return 'rgba(255, 206, 86, 0.7)';
+                    if (grade.startsWith('D')) return 'rgba(255, 159, 64, 0.7)';
+                    if (grade === 'F') return 'rgba(255, 99, 132, 0.7)';
+                    return 'rgba(201, 203, 207, 0.7)'; // W (withdrawal)
+                });
+                
+                // Get the canvas element
+                const ctx = document.getElementById('grade-chart').getContext('2d');
+                
+                // Destroy previous chart if it exists
+                if (gradeChart) {
+                    gradeChart.destroy();
+                }
+                
+                // Create new chart
+                gradeChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Number of Students',
+                            data: counts,
+                            backgroundColor: backgroundColors,
+                            borderColor: backgroundColors.map(color => color.replace('0.7', '1')),
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Number of Students'
+                                }
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Grade'
+                                }
+                            }
+                        },
+                        plugins: {
+                            title: {
+                                display: true,
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        const label = context.dataset.label || '';
+                                        const value = context.parsed.y;
+                                        const percentage = (value / data.total_students * 100).toFixed(1);
+                                        return `${label}: ${value} (${percentage}%)`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+            
+            function showLoading() {
+                loadingElement.style.display = 'block';
+            }
+            
+            function hideLoading() {
+                loadingElement.style.display = 'none';
+            }
+            
+            function showError(message) {
+                errorMessageElement.textContent = message;
+                errorMessageElement.style.display = 'block';
+            }
+            
+            function hideError() {
+                errorMessageElement.style.display = 'none';
+            }
+            
+            function showResult() {
+                courseResultElement.style.display = 'block';
+            }
+            
+            function hideResult() {
+                courseResultElement.style.display = 'none';
+                chartContainer.style.display = 'none';
+                if (gradeChart) {
+                    gradeChart.destroy();
+                    gradeChart = null;
+                }
+            }
+        });
+    </script>
+</body>
+<footer class="site-footer">
+    <div class="footer-container">
+        <div class="footer-logo">
+            <img src="../asset/logo.png" alt="CoursePilot Logo">
+            <p>Navigating your academic journey</p>
+        </div>
+        
+        <div class="footer-links">
+            <div class="footer-col">
+                <h4>Features</h4>
+                <ul>
+                    <li><a href="../html/course_explore.html">Course Explorer</a></li>
+                    <li><a href="../html/major_select.html">Course Planner</a></li>
+                </ul>
+            </div>
+            
+            <div class="footer-col">
+                <h4>Resources</h4>
+                <ul>
+                    <li><a href="../html/academic_calendar.html">Academic Calendar</a></li>
+                    <li><a href="../html/faq.html">FAQ</a></li>
+                </ul>
+            </div>
+            
+            <div class="footer-col">
+                <h4>About</h4>
+                <ul>
+                    <li><a href="../html/privacy_policy.html">Privacy Policy</a></li>
+                    <li><a href="../html/terms.html">Terms of Service</a></li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="footer-social">
+            <h4>Connect With Us</h4>
+            <div class="social-icons">
+                <a href="#" class="social-icon"><i class="fab fa-facebook-f"></i></a>
+                <a href="#" class="social-icon"><i class="fab fa-twitter"></i></a>
+                <a href="#" class="social-icon"><i class="fab fa-instagram"></i></a>
+                <a href="#" class="social-icon"><i class="fab fa-linkedin-in"></i></a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="footer-bottom">
+        <p>&copy; 2025 CoursePilot. All rights reserved.</p>
+    </div>
+</footer>
+
+</html>

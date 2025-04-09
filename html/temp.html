@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course Search - CoursePilot</title>
+    <link rel="stylesheet" href="../css/course_explore.css">
+    <style>
+        .course-result {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 30px;
+            text-align: left;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .course-result h2 {
+            color: #E35D0D;
+            margin-bottom: 10px;
+        }
+        
+        .course-result p {
+            margin: 10px 0;
+            line-height: 1.5;
+        }
+        
+        .course-result .label {
+            font-weight: bold;
+            color: #0D1B40;
+        }
+        
+        .gpa-highlight {
+            background-color: #f0f7ff;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 15px;
+            border-left: 4px solid #0D1B40;
+        }
+        
+        .error-message {
+            color: red;
+            margin-top: 20px;
+            font-weight: bold;
+        }
+        
+        .loading {
+            margin-top: 20px;
+            font-style: italic;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <a href="../html/mainpage.html"><img src="../asset/logo.png" alt="CoursePilot Logo"></a>
+        </div>
+        <nav class="navbar">
+            <a href="../html/major_select.html">Course Planner</a>
+            <a href="../html/course_explore.html">Course Explorer</a>
+            <a href="#">About Us</a>
+            <a href="#">Contact</a>
+        </nav>
+    </header>
+
+    <main class="container">
+        <h1 class="main-title">Course Search</h1>
+
+        <label for="course">What course are you looking for?</label>
+        <input type="text" id="course" placeholder="Type in your course (e.g. ECE)">
+
+        <label for="course-number">What is the course number?</label>
+        <input type="text" id="course-number" placeholder="Type in your course number (e.g. 101)">
+
+        <div class="selection">
+            <button class="search-btn" id="search-button">Find Course</button>
+        </div>
+        
+        <div id="loading" class="loading" style="display: none;">
+            Searching for course information...
+        </div>
+        
+        <div id="error-message" class="error-message" style="display: none;"></div>
+        
+        <div id="course-result" class="course-result" style="display: none;">
+            <h2 id="course-title"></h2>
+            <p><span class="label">Term:</span> <span id="course-term"></span></p>
+            <p><span class="label">Description:</span> <span id="course-description"></span></p>
+            <p><span class="label">Prerequisites:</span> <span id="course-prerequisites"></span></p>
+            <div class="gpa-highlight">
+                <p><span class="label">Average GPA:</span> <span id="course-gpa"></span></p>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchButton = document.getElementById('search-button');
+            const courseInput = document.getElementById('course');
+            const courseNumberInput = document.getElementById('course-number');
+            const loadingElement = document.getElementById('loading');
+            const errorMessageElement = document.getElementById('error-message');
+            const courseResultElement = document.getElementById('course-result');
+            
+            // Elements to display course information
+            const courseTitleElement = document.getElementById('course-title');
+            const courseTermElement = document.getElementById('course-term');
+            const courseDescriptionElement = document.getElementById('course-description');
+            const coursePrerequisitesElement = document.getElementById('course-prerequisites');
+            const courseGpaElement = document.getElementById('course-gpa');
+            
+            // Add event listener to search button
+            searchButton.addEventListener('click', searchCourse);
+            
+            // Add event listeners for Enter key
+            courseInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') searchCourse();
+            });
+            
+            courseNumberInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') searchCourse();
+            });
+            
+            function searchCourse() {
+                const department = courseInput.value.trim();
+                const courseNumber = courseNumberInput.value.trim();
+                
+                // Validate inputs
+                if (!department || !courseNumber) {
+                    showError('Please enter both department and course number');
+                    return;
+                }
+                
+                // Clear previous results and show loading
+                hideError();
+                hideResult();
+                showLoading();
+                
+                // Make API request to your backend
+                fetch(`/course?department=${department}&courseNumber=${courseNumber}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Course not found or server error');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        // Hide loading and display results
+                        hideLoading();
+                        displayCourseInfo(data, department, courseNumber);
+                    })
+                    .catch(error => {
+                        hideLoading();
+                        showError(error.message);
+                    });
+            }
+            
+            function displayCourseInfo(data, department, courseNumber) {
+                // Set course information
+                courseTitleElement.textContent = `${department} ${courseNumber}: ${data.title || 'N/A'}`;
+                courseTermElement.textContent = data.term || 'N/A';
+                courseDescriptionElement.textContent = data.description || 'No description available';
+                
+                // Handle prerequisites display
+                if (data.prerequisite) {
+                    coursePrerequisitesElement.textContent = data.prerequisite;
+                } else {
+                    coursePrerequisitesElement.textContent = 'None specified';
+                }
+                
+                // Display GPA
+                courseGpaElement.textContent = data.average_gpa || 'Not available';
+                
+                // Show the result container
+                showResult();
+            }
+            
+            function showLoading() {
+                loadingElement.style.display = 'block';
+            }
+            
+            function hideLoading() {
+                loadingElement.style.display = 'none';
+            }
+            
+            function showError(message) {
+                errorMessageElement.textContent = message;
+                errorMessageElement.style.display = 'block';
+            }
+            
+            function hideError() {
+                errorMessageElement.style.display = 'none';
+            }
+            
+            function showResult() {
+                courseResultElement.style.display = 'block';
+            }
+            
+            function hideResult() {
+                courseResultElement.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

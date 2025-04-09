@@ -1,0 +1,2221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course Planner - CoursePilot</title>
+    <link rel="stylesheet" href="../css/course_planner.css">
+    <link rel="stylesheet" href="../css/footer.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        /* Core styles for course planner interface */
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: transparent;
+            color: transparent;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 5%;
+            height: 80px;
+        }
+
+        .logo img {
+            height: 60px;
+        }
+
+        .navbar a {
+            color: white;
+            text-decoration: none;
+            margin-left: 30px;
+            font-weight: bold;
+            transition: color 0.3s;
+        }
+
+        .navbar a:hover {
+            color: #E35D0D;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .main-title {
+            color: #0D1B40;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        /* User info styles */
+        .user-info {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .user-info h2 {
+            color: #E35D0D;
+            margin-top: 0;
+        }
+
+        .user-info p {
+            margin: 10px 0;
+            font-size: 16px;
+        }
+
+        .info-label {
+            font-weight: bold;
+            color: #0D1B40;
+        }
+
+        /* Planner grid layout */
+        .planner-container {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .requirements-panel {
+            flex: 1;
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            max-width: 350px;
+        }
+
+        .semester-container {
+            flex: 2;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* Academic year styles */
+        .academic-year {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .year-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .year-header h2 {
+            color: #0D1B40;
+            margin: 0;
+        }
+
+        .year-header .credits {
+            font-weight: bold;
+            color: #E35D0D;
+        }
+
+        .semesters {
+            display: flex;
+            gap: 20px;
+        }
+
+        .semester {
+            flex: 1;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            padding: 15px;
+        }
+
+        .semester h3 {
+            color: #0D1B40;
+            margin-top: 0;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        /* Course styles */
+        .course-list {
+            min-height: 200px;
+        }
+
+        .course {
+            background-color: white;
+            border-left: 4px solid #E35D0D;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            cursor: grab;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .course h4 {
+            margin: 0 0 5px 0;
+            color: #0D1B40;
+        }
+
+        .course p {
+            margin: 0;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .course .credits {
+            color: #E35D0D;
+            font-weight: bold;
+        }
+
+        /* Requirements panel styles */
+        .requirements-panel h2 {
+            color: #E35D0D;
+            margin-top: 0;
+        }
+
+        .requirement-category {
+            margin-bottom: 20px;
+        }
+
+        .requirement-category h3 {
+            color: #0D1B40;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 8px;
+            margin-bottom: 15px;
+        }
+
+        .requirement-list {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .requirement-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .requirement-name {
+            flex: 2;
+        }
+
+        .requirement-status {
+            flex: 1;
+            text-align: right;
+            font-weight: bold;
+        }
+
+        .completed {
+            color: green;
+        }
+
+        .pending {
+            color: #E35D0D;
+        }
+
+        /* Course pool styles */
+        .course-pool {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 30px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .course-pool h2 {
+            color: #E35D0D;
+            margin-top: 0;
+        }
+
+        .search-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .search-bar input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        .search-bar button {
+            background-color: #E35D0D;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .search-bar button:hover {
+            background-color: #C14B0B;
+        }
+
+        .add-course {
+            background-color: #0D1B40;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            float: right;
+        }
+
+        .add-course:hover {
+            background-color: #1c3677;
+        }
+
+        .pool-courses {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .pool-course {
+            flex: 1 0 calc(25% - 15px);
+            min-width: 200px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+
+        .loading-indicator {
+            text-align: center;
+            padding: 20px;
+            font-style: italic;
+            color: #666;
+        }
+
+        .error-message {
+            color: red;
+            text-align: center;
+            padding: 20px;
+            font-weight: bold;
+        }
+
+        /* General utility classes */
+        .credits-badge {
+            display: inline-block;
+            background-color: #0D1B40;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 20px;
+            font-size: 12px;
+            margin-left: 5px;
+        }
+
+        .add-semester-btn {
+            background-color: #E35D0D;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 10px;
+            align-self: center;
+        }
+
+        .add-semester-btn:hover {
+            background-color: #C14B0B;
+        }
+
+        .action-buttons {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .save-plan-btn, .reset-plan-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+
+        .save-plan-btn {
+            background-color: #0D1B40;
+            color: white;
+        }
+
+        .save-plan-btn:hover {
+            background-color: #1c3677;
+        }
+
+        .reset-plan-btn {
+            background-color: #f0f0f0;
+            color: #333;
+        }
+
+        .reset-plan-btn:hover {
+            background-color: #e0e0e0;
+        }
+
+        /* Drag and drop visual indicators */
+        .dragover {
+            background-color: #e8f4ff;
+            border: 2px dashed #0D1B40;
+        }
+
+        .course.dragging {
+            opacity: 0.5;
+        }
+        
+        /* Transfer credits styles */
+        .transfer-credits-info {
+            background-color: #E8F4FF;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+            border-left: 4px solid #0D1B40;
+        }
+        
+        .transfer-credits-info h4 {
+            margin-top: 0;
+            color: #0D1B40;
+        }
+        
+        .transfer-credits-info p {
+            margin-bottom: 0;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <a href="../html/mainpage.html"><img src="../asset/logo.png" alt="CoursePilot Logo"></a>
+        </div>
+        <nav class="navbar">
+            <a href="../html/major_select.html">Course Planner</a>
+            <a href="../html/course_explore.html">Course Explorer</a>
+        </nav>
+    </header>
+
+    <main class="container">
+        <h1 class="main-title">Your Personalized Course Plan</h1>
+
+        <!-- User Info Section -->
+        <div class="user-info">
+            <h2>Your Academic Profile</h2>
+            <p><span class="info-label">Major:</span> <span id="user-major">Loading...</span></p>
+            <p id="track-info" style="display: none;"><span class="info-label">Track:</span> <span id="user-track"></span></p>
+            <p><span class="info-label">Academic Year:</span> <span id="user-year">Loading...</span></p>
+            <p><span class="info-label">Expected Graduation:</span> <span id="user-graduation">Loading...</span></p>
+            <p><span class="info-label">Transfer Credits:</span> <span id="user-transfer">0</span> hours</p>
+        </div>
+
+        <!-- Course Pool Section -->
+        <div class="course-pool">
+            <h2>Add Courses to Your Plan</h2>
+            
+            <div class="search-bar">
+                <input type="text" id="course-search" placeholder="Search for a course (e.g., CS 101)">
+                <button id="search-course-btn">Search</button>
+            </div>
+            
+            <div id="loading-indicator" class="loading-indicator" style="display: none;">
+                Searching for courses...
+            </div>
+            
+            <div id="error-message" class="error-message" style="display: none;">
+                <!-- Error messages will appear here -->
+            </div>
+            
+            <div id="no-courses-message" style="text-align: center; padding: 30px; color: #666;">
+                Search for courses above or select your major to see recommended courses
+            </div>
+            
+            <div class="pool-courses" id="pool-courses" style="display: none;">
+                <!-- Courses will be added here dynamically -->
+            </div>
+        </div>
+        
+
+        <!-- Planner Section -->
+        <div class="planner-container">
+            <!-- Requirements Panel -->
+            <!-- Requirements Panel -->
+            <div class="requirements-panel">
+                <h2>Degree Requirements</h2>
+                
+                <!-- Total Credits Counter -->
+                <div class="requirement-category">
+                    <h3>Total Credits</h3>
+                    <div class="progress-bar-container" style="background-color: #f0f0f0; border-radius: 10px; height: 20px; width: 100%; margin-bottom: 20px;">
+                        <div id="credits-progress-bar" style="background-color: #E35D0D; border-radius: 10px; height: 20px; width: 0%;"></div>
+                    </div>
+                    <p style="font-size: 18px; text-align: center;">
+                        <span id="total-credits">0</span> / 128 hours
+                    </p>
+                    
+                    <!-- Transfer credits information -->
+                    <div id="transfer-credits-info" class="transfer-credits-info" style="display: none;">
+                        <h4>Transfer Credits Applied</h4>
+                        <p><span id="transfer-credits-value">0</span> credit hours have been applied toward your degree.</p>
+                    </div>
+                </div>
+                
+                <!-- Major Requirements -->
+                <div class="requirement-category">
+                    <h3>Major Requirements</h3>
+                    <div class="requirement-list">
+                        <div class="requirement-item">
+                            <div class="requirement-name">Major Courses</div>
+                            <div class="requirement-status pending"><span id="major-complete">0</span> courses</div>
+                        </div>
+                        <div class="requirement-item">
+                            <div class="requirement-name">Technical Electives</div>
+                            <div class="requirement-status pending"><span id="technical-complete">0</span> courses</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Minor Requirements (if applicable) -->
+                <div class="requirement-category" id="minor-requirements" style="display: none;">
+                    <h3>Minor Requirements</h3>
+                    <div class="requirement-list">
+                        <div class="requirement-item">
+                            <div class="requirement-name">Minor Courses</div>
+                            <div class="requirement-status pending"><span id="minor-complete">0</span> courses</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- General Education -->
+                <div class="requirement-category">
+                    <h3>General Education</h3>
+                    <div class="requirement-list">
+                        <div class="requirement-item">
+                            <div class="requirement-name">Humanities</div>
+                            <div class="requirement-status pending"><span id="humanities-complete">0</span> courses</div>
+                        </div>
+                        <div class="requirement-item">
+                            <div class="requirement-name">Social Sciences</div>
+                            <div class="requirement-status pending"><span id="social-complete">0</span> courses</div>
+                        </div>
+                        <div class="requirement-item">
+                            <div class="requirement-name">Natural Sciences</div>
+                            <div class="requirement-status pending"><span id="natural-complete">0</span> courses</div>
+                        </div>
+                        <div class="requirement-item">
+                            <div class="requirement-name">Other GenEd</div>
+                            <div class="requirement-status pending"><span id="other-gened-complete">0</span> courses</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Semester Container -->
+            <div class="semester-container" id="semester-container">
+                <!-- First academic year - will be dynamically populated -->
+                <!-- Example structure for one academic year with two semesters -->
+                <div class="academic-year" data-year="1">
+                    <div class="year-header">
+                        <h2>First Year</h2>
+                        <span class="credits">0 credits</span>
+                    </div>
+                    <div class="semesters">
+                        <div class="semester" data-term="Fall">
+                            <h3>Fall Semester</h3>
+                            <div class="course-list" ondrop="drop(event)" ondragover="allowDrop(event)">
+                                <!-- Courses will be added here -->
+                            </div>
+                        </div>
+                        <div class="semester" data-term="Spring">
+                            <h3>Spring Semester</h3>
+                            <div class="course-list" ondrop="drop(event)" ondragover="allowDrop(event)">
+                                <!-- Courses will be added here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- More academic years will be added dynamically based on the student's graduation year -->
+            </div>
+        </div>
+
+        
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <button class="save-plan-btn" id="save-plan-btn">Save My Course Plan</button>
+            <button class="export-pdf-btn" id="export-pdf-btn">Export as PDF</button>
+            <button class="reset-plan-btn" id="reset-plan-btn">Reset Plan</button>
+        </div>
+
+        <div class="course-category-selection" style="display: none;">
+            <h3>Add Course to Your Plan</h3>
+            <div class="selected-course-info">
+              <h4 id="selected-course-title">CS 101: Intro to Computer Science</h4>
+              <p id="selected-course-credits">3 Credit Hours</p>
+            </div>
+            
+            <div class="category-options">
+              <p>Select course category:</p>
+              <div class="category-option">
+                <input type="radio" id="cat-major" name="course-category" value="major" checked>
+                <label for="cat-major">Major Requirement</label>
+              </div>
+              <div class="category-option">
+                <input type="radio" id="cat-minor" name="course-category" value="minor">
+                <label for="cat-minor">Minor Requirement</label>
+              </div>
+              <div class="category-option">
+                <input type="radio" id="cat-tech" name="course-category" value="technical">
+                <label for="cat-tech">Technical Elective</label>
+              </div>
+              <div class="category-option">
+                <input type="radio" id="cat-gened" name="course-category" value="genEd">
+                <label for="cat-gened">General Education</label>
+              </div>
+              
+              <div id="gened-subtypes" style="display: none; margin-left: 25px; margin-top: 5px;">
+                <div class="subcategory-option">
+                  <input type="radio" id="gened-hum" name="gened-type" value="humanities" checked>
+                  <label for="gened-hum">Humanities</label>
+                </div>
+                <div class="subcategory-option">
+                  <input type="radio" id="gened-soc" name="gened-type" value="social">
+                  <label for="gened-soc">Social Science</label>
+                </div>
+                <div class="subcategory-option">
+                  <input type="radio" id="gened-nat" name="gened-type" value="natural">
+                  <label for="gened-nat">Natural Science</label>
+                </div>
+                <div class="subcategory-option">
+                  <input type="radio" id="gened-other" name="gened-type" value="other">
+                  <label for="gened-other">Other GenEd</label>
+                </div>
+              </div>
+            </div>
+            
+            <div class="semester-selection">
+              <p>Add to semester:</p>
+              <select id="select-semester">
+                <!-- Will be populated dynamically -->
+              </select>
+            </div>
+            
+            <div class="category-buttons">
+              <button id="cancel-add-course" class="reset-plan-btn">Cancel</button>
+              <button id="confirm-add-course" class="save-plan-btn">Add to Plan</button>
+            </div>
+          </div>
+
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load user data from localStorage
+            const userDataString = localStorage.getItem('courseUserData');
+            
+            if (userDataString) {
+                try {
+                    const userData = JSON.parse(userDataString);
+                    displayUserInfo(userData);
+                    setupCoursePlan(userData);
+                } catch (e) {
+                    console.error('Error parsing user data:', e);
+                    showError('There was an error loading your course plan. Please go back to the major selection page.');
+                }
+            } else {
+                // Redirect to major selection if no data found
+                window.location.href = '../html/major_select.html';
+            }
+
+            const genEdRadio = document.getElementById('cat-gened');
+            if (genEdRadio) {
+                genEdRadio.addEventListener('change', function() {
+                    document.getElementById('gened-subtypes').style.display = this.checked ? 'block' : 'none';
+                });
+            }
+
+            // Show/hide the minor requirements section based on if any courses are added
+            updateRequirementProgress();
+            
+            // Set up event listeners
+            document.getElementById('search-course-btn').addEventListener('click', searchCourse);
+            document.getElementById('save-plan-btn').addEventListener('click', savePlan);
+            document.getElementById('reset-plan-btn').addEventListener('click', resetPlan);
+            
+            // Setup drag and drop listeners
+            setupDragAndDrop();
+            
+            // Initial course data (can be replaced with an API call in the future)
+            loadInitialCourses();
+        });
+
+        let selectedCourseData = null;
+        
+        function displayUserInfo(userData) {
+            document.getElementById('user-major').textContent = userData.major;
+            
+            if (userData.hasTrack && userData.track) {
+                document.getElementById('track-info').style.display = 'block';
+                document.getElementById('user-track').textContent = userData.track;
+            }
+            
+            // Capitalize first letter of academic year
+            const academicYear = userData.academicYear.charAt(0).toUpperCase() + userData.academicYear.slice(1);
+            document.getElementById('user-year').textContent = academicYear;
+            
+            document.getElementById('user-graduation').textContent = userData.gradYear;
+            
+            // Display transfer hours if available
+            const transferHours = userData.transferHours || 0;
+            document.getElementById('user-transfer').textContent = transferHours;
+            
+            // Display transfer credits info box if there are transfer credits
+            if (transferHours > 0) {
+                document.getElementById('transfer-credits-info').style.display = 'block';
+                document.getElementById('transfer-credits-value').textContent = transferHours;
+                
+                // Update the total credits display to include transfer hours
+                const totalCreditsElement = document.getElementById('total-credits');
+                if (totalCreditsElement) {
+                    totalCreditsElement.textContent = transferHours;
+                }
+                
+                // Update the progress bar immediately with transfer credits
+                updateCreditsProgressBar(transferHours);
+            }
+        }
+
+        // Helper function to update the credits progress bar
+        function updateCreditsProgressBar(totalCredits) {
+            const totalRequired = 128; // Default requirement
+            const percentage = Math.min(100, (totalCredits / totalRequired) * 100);
+            const progressBar = document.getElementById('credits-progress-bar');
+            
+            if (progressBar) {
+                progressBar.style.width = `${percentage}%`;
+                
+                // Change color based on progress
+                if (percentage >= 90) {
+                    progressBar.style.backgroundColor = '#4CAF50'; // Green when near completion
+                } else if (percentage >= 50) {
+                    progressBar.style.backgroundColor = '#E35D0D'; // Default orange for mid-progress
+                } else {
+                    progressBar.style.backgroundColor = '#E35D0D'; // Keep orange for early progress
+                }
+            }
+        }
+        
+        function setupCoursePlan(userData) {
+            const semesterContainer = document.getElementById('semester-container');
+            semesterContainer.innerHTML = ''; // Clear any existing content
+            
+            // Calculate number of years to graduation based on academic year and graduation year
+            let startYear = new Date().getFullYear();
+            let yearsToGraduation = parseInt(userData.gradYear) - startYear;
+            
+            // Determine the starting year number based on academic year
+            let startingYearNumber = 1; // Default for freshman
+            
+            // Adjust based on current academic year
+            if (userData.academicYear === 'freshman') {
+                yearsToGraduation = 4;
+                startingYearNumber = 1;
+            } else if (userData.academicYear === 'sophomore') {
+                yearsToGraduation = 3;
+                startingYearNumber = 2;
+            } else if (userData.academicYear === 'junior') {
+                yearsToGraduation = 2;
+                startingYearNumber = 3;
+            } else if (userData.academicYear === 'senior') {
+                yearsToGraduation = 1;
+                startingYearNumber = 4;
+            }
+            
+            // Create academic years and semesters
+            for (let i = 0; i < yearsToGraduation; i++) {
+                const yearElement = createAcademicYear(startingYearNumber + i);
+                semesterContainer.appendChild(yearElement);
+            }
+            
+            // Update requirements based on the major and include transfer credits
+            updateRequirements(userData.major, userData.track, userData.transferHours || 0);
+        }
+        
+        function createAcademicYear(yearNumber) {
+            // Create the year element
+            const yearDiv = document.createElement('div');
+            yearDiv.className = 'academic-year';
+            yearDiv.dataset.year = yearNumber;
+            
+            // Create year header
+            const yearHeader = document.createElement('div');
+            yearHeader.className = 'year-header';
+            
+            // Year title (First Year, Second Year, etc.)
+            const yearTitle = document.createElement('h2');
+            const yearNames = ['First', 'Second', 'Third', 'Fourth', 'Fifth'];
+            yearTitle.textContent = `${yearNames[yearNumber - 1] || yearNumber + 'th'} Year`;
+            
+            // Credits counter
+            const creditsSpan = document.createElement('span');
+            creditsSpan.className = 'credits';
+            creditsSpan.textContent = '0 credits';
+            
+            yearHeader.appendChild(yearTitle);
+            yearHeader.appendChild(creditsSpan);
+            yearDiv.appendChild(yearHeader);
+            
+            // Create semesters container
+            const semestersDiv = document.createElement('div');
+            semestersDiv.className = 'semesters';
+            
+            // Fall Semester
+            const fallSemester = createSemester('Fall');
+            semestersDiv.appendChild(fallSemester);
+            
+            // Spring Semester
+            const springSemester = createSemester('Spring');
+            semestersDiv.appendChild(springSemester);
+            
+            yearDiv.appendChild(semestersDiv);
+            
+            return yearDiv;
+        }
+        function createSemester(term) {
+            const semesterDiv = document.createElement('div');
+            semesterDiv.className = 'semester';
+            semesterDiv.dataset.term = term;
+            
+            const semesterTitle = document.createElement('h3');
+            semesterTitle.textContent = `${term} Semester`;
+            
+            const courseListDiv = document.createElement('div');
+            courseListDiv.className = 'course-list';
+            courseListDiv.setAttribute('ondrop', 'drop(event)');
+            courseListDiv.setAttribute('ondragover', 'allowDrop(event)');
+            
+            semesterDiv.appendChild(semesterTitle);
+            semesterDiv.appendChild(courseListDiv);
+            
+            return semesterDiv;
+        }
+        
+        // Update this function to remove the detailed requirements tracking
+        function updateRequirements(major, track, transferHours) {
+            // Set initial total credits to include transfer hours
+            const totalCreditsElement = document.getElementById('total-credits');
+            if (totalCreditsElement) {
+                // Apply transfer credits to start with
+                totalCreditsElement.textContent = transferHours;
+            }
+            
+            // Update the progress bar with transfer credits included
+            updateCreditsProgressBar(transferHours);
+            
+            // Still load recommended courses for the pool
+            fetch(`/recommended-courses?major=${encodeURIComponent(major)}&track=${encodeURIComponent(track || '')}`)
+                .then(response => {
+                    if (!response.ok) throw new Error('Error fetching recommended courses');
+                    return response.json();
+                })
+                .then(data => {
+                    // If there are recommended courses, populate the course pool
+                    if (data.recommended_courses) {
+                        const poolCoursesContainer = document.getElementById('pool-courses');
+                        if (poolCoursesContainer) {
+                            poolCoursesContainer.innerHTML = ''; // Clear existing courses
+                            poolCoursesContainer.style.display = 'flex';
+                            
+                            // Add core recommended courses
+                            if (data.recommended_courses.core) {
+                                data.recommended_courses.core.forEach(course => {
+                                    addRecommendedCourseToPool(course);
+                                });
+                            }
+                            
+                            // Add technical elective recommended courses if available
+                            if (data.recommended_courses.technical) {
+                                data.recommended_courses.technical.forEach(course => {
+                                    addRecommendedCourseToPool(course);
+                                });
+                            }
+                            
+                            // Hide the "no courses" message
+                            const noCoursesMessage = document.getElementById('no-courses-message');
+                            if (noCoursesMessage) {
+                                noCoursesMessage.style.display = 'none';
+                            }
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading recommended courses:', error);
+                    showError('Failed to load recommended courses. Please try again later.');
+                });
+        }
+
+        // Simplify the updateCredits function to only update the total credits
+        // Updated to include transfer credits 
+        function updateCredits() {
+            // Get transfer hours from user data
+            const userDataString = localStorage.getItem('courseUserData');
+            let transferHours = 0;
+            
+            if (userDataString) {
+                try {
+                    const userData = JSON.parse(userDataString);
+                    transferHours = parseInt(userData.transferHours) || 0;
+                } catch (e) {
+                    console.error('Error parsing user data:', e);
+                }
+            }
+            
+            // Update credit counts for each year
+            const academicYears = document.querySelectorAll('.academic-year');
+            let plannedCredits = 0;
+            
+            academicYears.forEach(year => {
+                const courses = year.querySelectorAll('.course');
+                let yearCredits = 0;
+                
+                courses.forEach(course => {
+                    const courseCredits = parseInt(course.dataset.credits) || 0;
+                    yearCredits += courseCredits;
+                    plannedCredits += courseCredits;
+                });
+                
+                // Update year credits display
+                const creditsDisplay = year.querySelector('.credits');
+                if (creditsDisplay) {
+                    creditsDisplay.textContent = `${yearCredits} credits`;
+                }
+            });
+            
+            // Total credits is planned credits plus transfer credits
+            const totalCredits = plannedCredits + transferHours;
+            
+            // Update total credits display
+            const totalCreditsElement = document.getElementById('total-credits');
+            if (totalCreditsElement) {
+                totalCreditsElement.textContent = totalCredits;
+            }
+            
+            // Update the progress bar
+            updateCreditsProgressBar(totalCredits);
+            
+            // Make sure transfer credits info is updated
+            const transferCreditsValue = document.getElementById('transfer-credits-value');
+            if (transferCreditsValue) {
+                transferCreditsValue.textContent = transferHours;
+            }
+        }
+
+        // We can remove or simplify the updateRequirementProgress function since we're only tracking total credits now
+        function updateRequirementProgress() {
+            // Get all courses in the plan
+            const allCourses = document.querySelectorAll('.semester .course');
+            
+            // Initialize counters for each category
+            let counts = {
+                major: 0,
+                minor: 0,
+                technical: 0,
+                genEd: {
+                    humanities: 0,
+                    social: 0,
+                    natural: 0,
+                    other: 0
+                }
+            };
+            
+            // Count courses by category
+            allCourses.forEach(course => {
+                const category = course.dataset.category;
+                
+                if (category === 'major') {
+                    counts.major++;
+                } else if (category === 'minor') {
+                    counts.minor++;
+                } else if (category === 'technical') {
+                    counts.technical++;
+                } else if (category === 'genEd') {
+                    const genEdType = course.dataset.genEdType || 'other';
+                    counts.genEd[genEdType]++;
+                }
+            });
+            
+            // Update the UI with these counts
+            document.getElementById('major-complete').textContent = counts.major;
+            document.getElementById('technical-complete').textContent = counts.technical;
+            document.getElementById('minor-complete').textContent = counts.minor;
+            document.getElementById('humanities-complete').textContent = counts.genEd.humanities;
+            document.getElementById('social-complete').textContent = counts.genEd.social;
+            document.getElementById('natural-complete').textContent = counts.genEd.natural;
+            document.getElementById('other-gened-complete').textContent = counts.genEd.other;
+            
+            // Show/hide minor requirements section based on if any minor courses are added
+            const minorSection = document.getElementById('minor-requirements');
+            if (minorSection) {
+                minorSection.style.display = counts.minor > 0 ? 'block' : 'none';
+            }
+            
+            // Apply color coding to requirement status based on progress
+            applyStatusColors();
+            
+            // Also update the total credits
+            updateCredits();
+        }
+
+        function applyStatusColors() {
+            // Apply color coding to major requirements
+            const majorRequirements = [
+                { id: 'major-complete', target: 10 }, // Example: target of 10 major courses
+                { id: 'technical-complete', target: 5 } // Example: target of 5 technical electives
+            ];
+            
+            majorRequirements.forEach(req => {
+                const element = document.getElementById(req.id);
+                if (!element) return;
+                
+                const count = parseInt(element.textContent);
+                const status = element.closest('.requirement-status');
+                
+                if (!status) return;
+                
+                // Remove existing classes
+                status.classList.remove('completed', 'in-progress', 'pending');
+                
+                // Add appropriate class
+                if (count >= req.target) {
+                    status.classList.add('completed');
+                } else if (count > 0) {
+                    status.classList.add('in-progress');
+                } else {
+                    status.classList.add('pending');
+                }
+            });
+            
+            // Apply color coding to GenEd requirements
+            const genEdRequirements = [
+                { id: 'humanities-complete', target: 3 },
+                { id: 'social-complete', target: 3 },
+                { id: 'natural-complete', target: 2 },
+                { id: 'other-gened-complete', target: 2 }
+            ];
+            
+            genEdRequirements.forEach(req => {
+                const element = document.getElementById(req.id);
+                if (!element) return;
+                
+                const count = parseInt(element.textContent);
+                const status = element.closest('.requirement-status');
+                
+                if (!status) return;
+                
+                // Remove existing classes
+                status.classList.remove('completed', 'in-progress', 'pending');
+                
+                // Add appropriate class
+                if (count >= req.target) {
+                    status.classList.add('completed');
+                } else if (count > 0) {
+                    status.classList.add('in-progress');
+                } else {
+                    status.classList.add('pending');
+                }
+            });
+            
+            // For minor, any courses count as progress
+            const minorElement = document.getElementById('minor-complete');
+            if (minorElement) {
+                const count = parseInt(minorElement.textContent);
+                const status = minorElement.closest('.requirement-status');
+                
+                if (status) {
+                    status.classList.remove('completed', 'in-progress', 'pending');
+                    
+                    if (count >= 6) { // Example: target of 6 minor courses
+                        status.classList.add('completed');
+                    } else if (count > 0) {
+                        status.classList.add('in-progress');
+                    } else {
+                        status.classList.add('pending');
+                    }
+                }
+            }
+        }
+
+        
+        // Function to add recommended course to the pool
+        function addRecommendedCourseToPool(course) {
+            const poolCoursesContainer = document.getElementById('pool-courses');
+            if (!poolCoursesContainer) return;
+            
+            // Make sure the pool is visible
+            poolCoursesContainer.style.display = 'flex';
+            
+            // Hide the "no courses" message when adding courses
+            const noCoursesMessage = document.getElementById('no-courses-message');
+            if (noCoursesMessage) {
+                noCoursesMessage.style.display = 'none';
+            }
+            
+            // Create a unique ID for the course
+            const courseId = `course-${course.code.replace(/\s+/g, '-')}`;
+            
+            // Check if the course is already in the pool
+            if (document.getElementById(courseId)) {
+                return; // Skip if already added
+            }
+            
+            // Create course element
+            const courseElement = document.createElement('div');
+            courseElement.className = 'pool-course';
+            courseElement.id = courseId;
+            courseElement.setAttribute('draggable', 'true');
+            courseElement.setAttribute('ondragstart', 'drag(event)');
+            
+            // Ensure credits is a number
+            let credits = 3; // Default fallback
+            if (course.credits) {
+                if (typeof course.credits === 'string') {
+                    // Try to extract just the number part if it has text like "3 hours"
+                    const creditMatch = course.credits.match(/(\d+)/);
+                    if (creditMatch) {
+                        credits = parseInt(creditMatch[1]);
+                    } else if (!isNaN(parseInt(course.credits))) {
+                        credits = parseInt(course.credits);
+                    }
+                } else if (typeof course.credits === 'number') {
+                    credits = course.credits;
+                }
+            }
+            
+            // Set course data attributes
+            courseElement.dataset.credits = credits;
+            courseElement.dataset.category = course.category;
+            
+            // Set course content
+            courseElement.innerHTML = `
+                <h4>${course.code}: ${course.title}</h4>
+                <p>${course.description || 'No description available'}</p>
+                <p class="credits">Credits: ${credits}</p>
+                <button class="add-course" onclick="addToPlan('${courseId}')">Add to Plan</button>
+            `;
+            
+            // Add to the pool
+            poolCoursesContainer.appendChild(courseElement);
+        }
+        // 1. First, update the searchCourse function to extract credit hours
+        function searchCourse() {
+            const searchInput = document.getElementById('course-search').value.trim();
+            
+            if (!searchInput) {
+                showError('Please enter a course to search for');
+                return;
+            }
+            
+            // Show loading indicator
+            const loadingIndicator = document.getElementById('loading-indicator');
+            if (loadingIndicator) {
+                loadingIndicator.style.display = 'block';
+            }
+            
+            // Hide error message
+            const errorMessage = document.getElementById('error-message');
+            if (errorMessage) {
+                errorMessage.style.display = 'none';
+            }
+            
+            // Hide no courses message
+            const noCoursesMessage = document.getElementById('no-courses-message');
+            if (noCoursesMessage) {
+                noCoursesMessage.style.display = 'none';
+            }
+            
+            // If input follows the pattern of a course code (e.g., CS 101)
+            const match = searchInput.match(/^([a-zA-Z]+)\s*(\d+)$/);
+            
+            if (match) {
+                // Direct course lookup by department and number
+                const department = match[1].toUpperCase();
+                const courseNumber = match[2];
+                
+                // Make API request to get course details
+                fetch(`/course?department=${department}&courseNumber=${courseNumber}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Course not found. Please check the course code and try again.');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        // Hide loading indicator
+                        if (loadingIndicator) {
+                            loadingIndicator.style.display = 'none';
+                        }
+                        
+                        // Parse credit hours from the response
+                        // This might come as "3 hours" or just "3" depending on your API
+                        let credits = 3; // Default as fallback
+                        
+                        // Check if creditHours is in the response data
+                        if (data.creditHours) {
+                            // Try to extract just the number from the credit hours string
+                            const creditMatch = data.creditHours.match(/(\d+)/);
+                            if (creditMatch) {
+                                credits = parseInt(creditMatch[1]);
+                            } else if (!isNaN(parseInt(data.creditHours))) {
+                                credits = parseInt(data.creditHours);
+                            }
+                        }
+                        
+                        // Add the course to the pool
+                        const courseData = {
+                            code: `${department} ${courseNumber}`,
+                            title: data.title || 'Unknown Course',
+                            description: data.description || 'No description available',
+                            credits: credits, // Use parsed credits
+                            category: determineCourseCategory(department, courseNumber)
+                        };
+                        
+                        addRecommendedCourseToPool(courseData);
+                    })
+                    .catch(error => {
+                        // If direct lookup fails, try the general search
+                        performGeneralSearch(searchInput);
+                    });
+            } else {
+                // General search by keyword
+                performGeneralSearch(searchInput);
+            }
+        }
+
+        // 2. Updated performGeneralSearch function to also handle credit hours
+        function performGeneralSearch(query) {
+            // Make API request to search courses
+            fetch(`/course-search?q=${encodeURIComponent(query)}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Error searching for courses. Please try a different query.');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Hide loading indicator
+                    const loadingIndicator = document.getElementById('loading-indicator');
+                    if (loadingIndicator) {
+                        loadingIndicator.style.display = 'none';
+                    }
+                    
+                    if (!data || data.length === 0) {
+                        showError('No courses found matching your search. Try a different query.');
+                        
+                        const noCoursesMessage = document.getElementById('no-courses-message');
+                        if (noCoursesMessage) {
+                            noCoursesMessage.style.display = 'block';
+                        }
+                        
+                        const poolCoursesContainer = document.getElementById('pool-courses');
+                        if (poolCoursesContainer) {
+                            poolCoursesContainer.style.display = 'none';
+                        }
+                        return;
+                    }
+                    
+                    // Clear existing courses in pool
+                    const poolCoursesContainer = document.getElementById('pool-courses');
+                    if (poolCoursesContainer) {
+                        poolCoursesContainer.innerHTML = '';
+                        poolCoursesContainer.style.display = 'flex';
+                        
+                        // Add each course to the pool
+                        data.forEach(course => {
+                            // Ensure credits is a number
+                            if (course.credits && typeof course.credits === 'string') {
+                                const creditMatch = course.credits.match(/(\d+)/);
+                                if (creditMatch) {
+                                    course.credits = parseInt(creditMatch[1]);
+                                } else if (!isNaN(parseInt(course.credits))) {
+                                    course.credits = parseInt(course.credits);
+                                } else {
+                                    course.credits = 3; // Default fallback
+                                }
+                            } else if (!course.credits) {
+                                course.credits = 3; // Default fallback
+                            }
+                            
+                            addRecommendedCourseToPool(course);
+                        });
+                    }
+                })
+                .catch(error => {
+                    // Hide loading and show error
+                    const loadingIndicator = document.getElementById('loading-indicator');
+                    if (loadingIndicator) {
+                        loadingIndicator.style.display = 'none';
+                    }
+                    
+                    showError(error.message);
+                    
+                    const noCoursesMessage = document.getElementById('no-courses-message');
+                    if (noCoursesMessage) {
+                        noCoursesMessage.style.display = 'block';
+                    }
+                    
+                    const poolCoursesContainer = document.getElementById('pool-courses');
+                    if (poolCoursesContainer) {
+                        poolCoursesContainer.style.display = 'none';
+                    }
+                });
+        }
+
+        function addCourseToPool(department, courseNumber, courseData) {
+            const poolCoursesContainer = document.getElementById('pool-courses');
+            if (!poolCoursesContainer) return;
+            
+            // Create a unique ID for the course
+            const courseId = `course-${department}-${courseNumber}`;
+            
+            // Check if the course is already in the pool
+            if (document.getElementById(courseId)) {
+                showError('This course is already in your pool');
+                return;
+            }
+            
+            // Create course element
+            const courseElement = document.createElement('div');
+            courseElement.className = 'pool-course';
+            courseElement.id = courseId;
+            courseElement.setAttribute('draggable', 'true');
+            courseElement.setAttribute('ondragstart', 'drag(event)');
+            
+            // Determine credits (example logic, actual implementation might differ)
+            const credits = courseData.credits || 3; // Default to 3 credits if not specified
+            courseElement.dataset.credits = credits;
+            
+            // Determine course category (core, technical, genEd)
+            const category = determineCourseCategory(department, courseNumber);
+            courseElement.dataset.category = category;
+            
+            // Set course data
+            courseElement.innerHTML = `
+                <h4>${department} ${courseNumber}: ${courseData.title || 'Unknown Course'}</h4>
+                <p>${courseData.description || 'No description available'}</p>
+                <p class="credits">Credits: ${credits}</p>
+                <button class="add-course" onclick="addToPlan('${courseId}')">Add to Plan</button>
+            `;
+            
+            // Add to the pool
+            poolCoursesContainer.prepend(courseElement);
+            
+            // Make sure the pool is visible
+            poolCoursesContainer.style.display = 'flex';
+            
+            // Hide the "no courses" message
+            const noCoursesMessage = document.getElementById('no-courses-message');
+            if (noCoursesMessage) {
+                noCoursesMessage.style.display = 'none';
+            }
+        }
+        
+        function determineCourseCategory(department, courseNumber) {
+            // This is a simplified example. In a real application, this would be more complex
+            // and possibly determined by your backend based on university requirements
+            
+            // Math, Physics, Chemistry courses are typically core requirements
+            if (['MATH', 'PHYS', 'CHEM'].includes(department)) {
+                return 'core';
+            }
+            
+            // Writing courses are typically general education
+            if (['RHET', 'CMN', 'ENGL'].includes(department)) {
+                return 'genEd';
+            }
+            
+            // Upper-level courses in the major department are often technical electives
+            if (parseInt(courseNumber) >= 300) {
+                return 'technical';
+            }
+            
+            // Default to core for department-specific courses
+            return 'core';
+        }
+        
+        // Drag and Drop functionality
+        function setupDragAndDrop() {
+            // Add drag and drop event listeners to all course elements
+            document.addEventListener('dragover', function(event) {
+                event.preventDefault();
+                // Find the closest course-list container
+                const dropZone = event.target.closest('.course-list');
+                if (dropZone) {
+                    // Add highlighting to indicate drop area
+                    clearDragoverClasses();
+                    dropZone.classList.add('dragover');
+                }
+            });
+            
+            document.addEventListener('dragleave', function(event) {
+                // Remove highlighting when dragging leaves area
+                const dropZone = event.target.closest('.course-list');
+                if (dropZone) {
+                    dropZone.classList.remove('dragover');
+                }
+            });
+            
+            // When drag ends without a drop, clear all highlights
+            document.addEventListener('dragend', function(event) {
+                clearDragoverClasses();
+                
+                // Remove dragging class from all courses
+                const courses = document.querySelectorAll('.course.dragging');
+                courses.forEach(course => {
+                    course.classList.remove('dragging');
+                });
+            });
+        }
+
+        function clearDragoverClasses() {
+            // Remove dragover class from all drop zones
+            const dropZones = document.querySelectorAll('.course-list');
+            dropZones.forEach(zone => {
+                zone.classList.remove('dragover');
+            });
+        }
+
+        
+        function allowDrop(event) {
+            event.preventDefault();
+            // Add visual feedback for drop target
+            clearDragoverClasses();
+            
+            // Get the proper drop zone (course-list element)
+            const dropZone = event.target.closest('.course-list');
+            if (dropZone) {
+                dropZone.classList.add('dragover');
+            }
+        }
+        
+        function drag(event) {
+            // Set the data to be transferred (course ID)
+            event.dataTransfer.setData("text", event.target.id);
+            
+            // Add visual feedback for dragged item
+            event.target.classList.add('dragging');
+            
+            // If this is a course in the semester plan (not from pool)
+            if (event.target.classList.contains('course')) {
+                // Mark origin to know if we're moving from pool or from another semester
+                event.dataTransfer.setData("origin", "semester");
+            } else {
+                event.dataTransfer.setData("origin", "pool");
+            }
+        }
+        
+        function drop(event) {
+            event.preventDefault();
+            
+            // Remove highlighting from all drop zones
+            clearDragoverClasses();
+            
+            // Get the course element being dragged
+            const courseId = event.dataTransfer.getData("text");
+            const courseToDrop = document.getElementById(courseId);
+            if (!courseToDrop) return;
+            
+            // Remove dragging class
+            courseToDrop.classList.remove('dragging');
+            
+            // Get the target drop zone (course-list)
+            const dropTarget = event.target.closest('.course-list');
+            if (!dropTarget) return;
+            
+            // Check if coming from the pool or from another semester
+            const origin = event.dataTransfer.getData("origin");
+            
+            if (origin === "pool") {
+                // When coming from pool, create a copy
+                const courseCopy = createCourseCopy(courseToDrop);
+                dropTarget.appendChild(courseCopy);
+            } else if (origin === "semester") {
+                // When coming from another semester, move the course
+                // Get the parent to check if we're actually moving between semesters
+                const currentParent = courseToDrop.parentElement;
+                
+                // Check if we're trying to drop to same location
+                if (currentParent === dropTarget) {
+                    return; // Do nothing if dropping to same semester
+                }
+                
+                // Move the course to the new semester
+                dropTarget.appendChild(courseToDrop);
+            }
+            
+            // Update credit counts for each year and total
+            updateCredits();
+            
+            // Update requirement tracking
+            updateRequirementProgress();
+        }
+
+        function createCourseCopy(originalCourse) {
+            // Create a new course element for the plan
+            const courseCopy = document.createElement('div');
+            courseCopy.className = 'course';
+            courseCopy.setAttribute('draggable', 'true');
+            courseCopy.setAttribute('ondragstart', 'drag(event)');
+            
+            // Generate a unique ID for the course in the semester
+            const courseIdBase = originalCourse.id || 'course';
+            courseCopy.id = `${courseIdBase}-${Date.now()}`;
+            
+            // Get credits from data attribute
+            let credits = parseInt(originalCourse.dataset.credits) || 3;
+            
+            // Copy data attributes
+            courseCopy.dataset.credits = credits;
+            courseCopy.dataset.category = originalCourse.dataset.category || 'major'; // Default to major if not specified
+            
+            // Copy genEdType if it exists
+            if (originalCourse.dataset.genEdType) {
+                courseCopy.dataset.genEdType = originalCourse.dataset.genEdType;
+            }
+            
+            // Get course details from the original
+            const courseTitle = originalCourse.querySelector('h4').textContent;
+            
+            // Determine category label
+            let categoryLabel = '';
+            const category = courseCopy.dataset.category;
+            
+            switch(category) {
+                case 'major':
+                    categoryLabel = 'Major';
+                    break;
+                case 'minor':
+                    categoryLabel = 'Minor';
+                    break;
+                case 'technical':
+                    categoryLabel = 'Tech Elective';
+                    break;
+                case 'genEd':
+                    categoryLabel = 'GenEd';
+                    break;
+                default:
+                    categoryLabel = 'Course';
+            }
+            
+            // Determine GenEd subtype label if applicable
+            let genEdLabel = '';
+            if (category === 'genEd' && courseCopy.dataset.genEdType) {
+                switch(courseCopy.dataset.genEdType) {
+                    case 'humanities':
+                        genEdLabel = '(Humanities)';
+                        break;
+                    case 'social':
+                        genEdLabel = '(Social Science)';
+                        break;
+                    case 'natural':
+                        genEdLabel = '(Natural Science)';
+                        break;
+                    case 'other':
+                        genEdLabel = '(Other)';
+                        break;
+                }
+            }
+            
+            // Create course content with explicit credit hours from data attribute
+            courseCopy.innerHTML = `
+                <h4>${courseTitle}</h4>
+                <p>${credits} credit hours</p>
+                <div class="category-indicator category-${category}">${categoryLabel} 
+                    <span class="gened-type">${genEdLabel}</span>
+                </div>
+                <button onclick="removeCourse(this)" style="background: none; border: none; color: red; cursor: pointer; float: right; position: absolute; top: 5px; right: 5px;">✕</button>
+            `;
+            
+            // Set positioning for the course element
+            courseCopy.style.position = 'relative';
+            
+            return courseCopy;
+        }
+
+        function addToPlan(courseId) {
+            // Get the course from the pool
+            const course = document.getElementById(courseId);
+            if (!course) return;
+            
+            // Store selected course data
+            selectedCourseData = {
+                id: courseId,
+                title: course.querySelector('h4').textContent,
+                credits: course.dataset.credits || 3,
+                originalCategory: course.dataset.category || 'unknown'
+            };
+            
+            // Show the course selection modal
+            showCourseSelectionModal();
+        }
+
+        function showCourseSelectionModal() {
+            // Create backdrop
+            const backdrop = document.createElement('div');
+            backdrop.className = 'modal-backdrop';
+            document.body.appendChild(backdrop);
+            
+            // Show the selection modal
+            const modal = document.querySelector('.course-category-selection');
+            if (!modal) return;
+            
+            // Set course info
+            document.getElementById('selected-course-title').textContent = selectedCourseData.title;
+            document.getElementById('selected-course-credits').textContent = `${selectedCourseData.credits} Credit Hours`;
+            
+            // Pre-select the appropriate category if it's known
+            if (selectedCourseData.originalCategory) {
+                const categoryRadio = document.querySelector(`input[name="course-category"][value="${selectedCourseData.originalCategory}"]`);
+                if (categoryRadio) {
+                    categoryRadio.checked = true;
+                    
+                    // If it's genEd, show the subtypes
+                    if (selectedCourseData.originalCategory === 'genEd') {
+                        document.getElementById('gened-subtypes').style.display = 'block';
+                    }
+                }
+            }
+            
+            // Populate semester dropdown
+            populateSemesterDropdown();
+            
+            // Show the modal
+            modal.style.display = 'block';
+            
+            // Set up event listeners
+            document.getElementById('cancel-add-course').addEventListener('click', hideCourseSelectionModal);
+            document.getElementById('confirm-add-course').addEventListener('click', confirmAddCourse);
+            
+            // Toggle GenEd subtypes visibility when GenEd is selected
+            const genEdRadio = document.getElementById('cat-gened');
+            genEdRadio.addEventListener('change', function() {
+                document.getElementById('gened-subtypes').style.display = this.checked ? 'block' : 'none';
+            });
+            
+            // Hide GenEd subtypes when other categories are selected
+            const otherRadios = document.querySelectorAll('input[name="course-category"]:not(#cat-gened)');
+            otherRadios.forEach(radio => {
+                radio.addEventListener('change', function() {
+                    document.getElementById('gened-subtypes').style.display = 'none';
+                });
+            });
+        }
+
+        function hideCourseSelectionModal() {
+            // Remove backdrop
+            const backdrop = document.querySelector('.modal-backdrop');
+            if (backdrop) {
+                backdrop.remove();
+            }
+            
+            // Hide the modal
+            const modal = document.querySelector('.course-category-selection');
+            if (modal) {
+                modal.style.display = 'none';
+            }
+            
+            // Clear selected course data
+            selectedCourseData = null;
+        }
+
+        function populateSemesterDropdown() {
+            const dropdown = document.getElementById('select-semester');
+            if (!dropdown) return;
+            
+            // Clear existing options
+            dropdown.innerHTML = '';
+            
+            // Get all semesters
+            const semesters = document.querySelectorAll('.semester');
+            
+            // Add each semester as an option
+            semesters.forEach((semester, index) => {
+                const yearElement = semester.closest('.academic-year');
+                const year = yearElement ? yearElement.querySelector('h2').textContent : '';
+                const term = semester.dataset.term;
+                
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = `${year} - ${term} Semester`;
+                option.dataset.year = yearElement ? yearElement.dataset.year : '';
+                option.dataset.term = term;
+                
+                dropdown.appendChild(option);
+            });
+        }
+
+        function confirmAddCourse() {
+            if (!selectedCourseData) {
+                hideCourseSelectionModal();
+                return;
+            }
+            
+            // Get selected category
+            const categoryRadio = document.querySelector('input[name="course-category"]:checked');
+            if (!categoryRadio) {
+                alert('Please select a course category');
+                return;
+            }
+            
+            const category = categoryRadio.value;
+            
+            // If GenEd is selected, get the subtype
+            let genEdType = '';
+            if (category === 'genEd') {
+                const genEdRadio = document.querySelector('input[name="gened-type"]:checked');
+                if (genEdRadio) {
+                    genEdType = genEdRadio.value;
+                }
+            }
+            
+            // Get selected semester
+            const semesterDropdown = document.getElementById('select-semester');
+            if (!semesterDropdown) {
+                hideCourseSelectionModal();
+                return;
+            }
+            
+            const selectedOption = semesterDropdown.options[semesterDropdown.selectedIndex];
+            
+            // Find the course-list element for the selected semester
+            const allSemesters = document.querySelectorAll('.semester');
+            const selectedSemester = allSemesters[semesterDropdown.selectedIndex];
+            
+            if (!selectedSemester) {
+                hideCourseSelectionModal();
+                return;
+            }
+            
+            const courseList = selectedSemester.querySelector('.course-list');
+            
+            // Create course element for the semester
+            const course = document.createElement('div');
+            course.className = 'course';
+            course.setAttribute('draggable', 'true');
+            course.setAttribute('ondragstart', 'drag(event)');
+            
+            // Generate a unique ID for the course in the semester
+            course.id = `${selectedCourseData.id}-${Date.now()}`;
+            
+            // Parse credits to ensure it's a number
+            let credits = 3; // Default fallback
+            if (selectedCourseData.credits) {
+                if (typeof selectedCourseData.credits === 'string') {
+                    const creditMatch = selectedCourseData.credits.match(/(\d+)/);
+                    if (creditMatch) {
+                        credits = parseInt(creditMatch[1]);
+                    } else if (!isNaN(parseInt(selectedCourseData.credits))) {
+                        credits = parseInt(selectedCourseData.credits);
+                    }
+                } else if (typeof selectedCourseData.credits === 'number') {
+                    credits = selectedCourseData.credits;
+                }
+            }
+            
+            // Set data attributes
+            course.dataset.credits = credits;
+            course.dataset.category = category;
+            if (genEdType) {
+                course.dataset.genEdType = genEdType;
+            }
+            
+            // Create course HTML with category indicator
+            let categoryLabel = '';
+            switch(category) {
+                case 'major':
+                    categoryLabel = 'Major';
+                    break;
+                case 'minor':
+                    categoryLabel = 'Minor';
+                    break;
+                case 'technical':
+                    categoryLabel = 'Tech Elective';
+                    break;
+                case 'genEd':
+                    categoryLabel = 'GenEd';
+                    break;
+            }
+            
+            let genEdLabel = '';
+            if (genEdType) {
+                switch(genEdType) {
+                    case 'humanities':
+                        genEdLabel = '(Humanities)';
+                        break;
+                    case 'social':
+                        genEdLabel = '(Social Science)';
+                        break;
+                    case 'natural':
+                        genEdLabel = '(Natural Science)';
+                        break;
+                    case 'other':
+                        genEdLabel = '(Other)';
+                        break;
+                }
+            }
+            
+            course.innerHTML = `
+                <h4>${selectedCourseData.title}</h4>
+                <p>${credits} credit hours</p>
+                <div class="category-indicator category-${category}">${categoryLabel} 
+                    <span class="gened-type">${genEdLabel}</span>
+                </div>
+                <button onclick="removeCourse(this)" style="background: none; border: none; color: red; cursor: pointer; float: right; position: absolute; top: 5px; right: 5px;">✕</button>
+            `;
+            
+            // Set positioning for the course element
+            course.style.position = 'relative';
+            
+            // Add to the selected semester
+            courseList.appendChild(course);
+            
+            // Hide the modal
+            hideCourseSelectionModal();
+            
+            // Update credit counts
+            updateCredits();
+            
+            // Update requirement tracking
+            updateRequirementProgress();
+        }
+        
+        function removeCourse(button) {
+            // Get the course element
+            const course = button.closest('.course');
+            if (!course) return;
+            
+            // Remove the course
+            course.remove();
+            
+            // Update credit counts
+            updateCredits();
+            
+            // Update requirement progress
+            updateRequirementProgress();
+        }
+        
+        function savePlan() {
+            // Collect all course data from the semesters
+            const plan = [];
+            
+            const academicYears = document.querySelectorAll('.academic-year');
+            academicYears.forEach(year => {
+                const yearNumber = year.dataset.year;
+                
+                const semesters = year.querySelectorAll('.semester');
+                semesters.forEach(semester => {
+                    const term = semester.dataset.term;
+                    
+                    const courses = semester.querySelectorAll('.course');
+                    const semesterCourses = [];
+                    
+                    courses.forEach(course => {
+                        semesterCourses.push({
+                            id: course.dataset.id,
+                            credits: course.dataset.credits,
+                            category: course.dataset.category,
+                            title: course.querySelector('h4').textContent
+                        });
+                    });
+                    
+                    plan.push({
+                        year: yearNumber,
+                        term: term,
+                        courses: semesterCourses
+                    });
+                });
+            });
+            
+            // Save to localStorage
+            localStorage.setItem('coursePlan', JSON.stringify(plan));
+            
+            // Provide feedback to the user
+            alert('Your course plan has been saved!');
+        }
+        
+        function resetPlan() {
+            // Confirm before resetting
+            if (!confirm('Are you sure you want to reset your course plan? This will remove all courses from your plan.')) {
+                return;
+            }
+            
+            // Clear all courses from semesters
+            const courseLists = document.querySelectorAll('.semester .course-list');
+            courseLists.forEach(list => {
+                list.innerHTML = '';
+            });
+            
+            // Update credit counts
+            updateCredits();
+            
+            // Update requirement progress
+            updateRequirementProgress();
+            
+            // Clear saved plan from localStorage
+            localStorage.removeItem('coursePlan');
+            
+            // Provide feedback
+            alert('Your course plan has been reset.');
+        }
+        
+        
+        function showError(message) {
+            const errorElement = document.getElementById('error-message');
+            if (errorElement) {
+                errorElement.textContent = message;
+                errorElement.style.display = 'block';
+                
+                // Hide after 5 seconds
+                setTimeout(() => {
+                    errorElement.style.display = 'none';
+                }, 5000);
+            }
+        }
+
+                // Add this with your other event listeners in the DOMContentLoaded function
+        document.getElementById('export-pdf-btn').addEventListener('click', exportToPDF);
+
+        // Function to export plan as PDF
+        // Function to export plan as PDF with improved formatting
+        // Function to export plan as PDF with improved formatting and page break handling
+        function exportToPDF() {
+            
+            // Show a loading message
+            const loadingMessage = document.createElement('div');
+            loadingMessage.style.position = 'fixed';
+            loadingMessage.style.top = '50%';
+            loadingMessage.style.left = '50%';
+            loadingMessage.style.transform = 'translate(-50%, -50%)';
+            loadingMessage.style.padding = '20px';
+            loadingMessage.style.background = 'rgba(0,0,0,0.8)';
+            loadingMessage.style.color = 'white';
+            loadingMessage.style.borderRadius = '10px';
+            loadingMessage.style.zIndex = '9999';
+            loadingMessage.textContent = 'Generating PDF, please wait...';
+            document.body.appendChild(loadingMessage);
+
+            // Get user data for PDF title
+            const userDataString = localStorage.getItem('courseUserData');
+            let userData = {};
+            if (userDataString) {
+                try {
+                    userData = JSON.parse(userDataString);
+                } catch (e) {
+                    console.error('Error parsing user data:', e);
+                }
+            }
+
+            // Create a PDF document directly using jsPDF
+            const pdf = new window.jspdf.jsPDF({
+                orientation: 'portrait',
+                unit: 'mm',
+                format: 'a4'
+            });
+            
+            // PDF dimensions
+            const pageWidth = pdf.internal.pageSize.getWidth();
+            const pageHeight = pdf.internal.pageSize.getHeight();
+            const margin = 15;
+            const contentWidth = pageWidth - (margin * 2);
+            
+            // Set font styles
+            pdf.setFont('helvetica', 'bold');
+            pdf.setFontSize(16);
+            pdf.setTextColor(13, 27, 64); // #0D1B40
+            
+            // Add header
+            const title = `Course Plan for ${userData.major || 'My Major'}`;
+            pdf.text(title, pageWidth / 2, margin, { align: 'center' });
+            
+            // Add date
+            pdf.setFont('helvetica', 'normal');
+            pdf.setFontSize(10);
+            pdf.setTextColor(100, 100, 100);
+            const dateText = `Generated on ${new Date().toLocaleDateString()}`;
+            pdf.text(dateText, pageWidth / 2, margin + 7, { align: 'center' });
+            
+            // Add user info table
+            pdf.setFont('helvetica', 'bold');
+            pdf.setFontSize(12);
+            pdf.setTextColor(227, 93, 13); // #E35D0D
+            pdf.text('Academic Profile', margin, margin + 15);
+            
+            pdf.setDrawColor(200, 200, 200);
+            pdf.setFillColor(245, 247, 250); // #f5f7fa
+            pdf.rect(margin, margin + 17, contentWidth, 25, 'F');
+            
+            pdf.setFont('helvetica', 'normal');
+            pdf.setFontSize(10);
+            pdf.setTextColor(60, 60, 60);
+            
+            const infoY = margin + 23;
+            const infoGap = 6;
+            pdf.text(`Major: ${userData.major || 'N/A'}`, margin + 5, infoY);
+            pdf.text(`Academic Year: ${userData.academicYear || 'N/A'}`, margin + 5, infoY + infoGap);
+            pdf.text(`Expected Graduation: ${userData.gradYear || 'N/A'}`, pageWidth / 2, infoY);
+            pdf.text(`Transfer Credits: ${userData.transferHours || '0'} hours`, pageWidth / 2, infoY + infoGap);
+            
+            // Let's create a table-like structure for the course plan
+            let currentY = margin + 50;
+            const academicYears = document.querySelectorAll('.academic-year');
+            
+            // Loop through each academic year
+            academicYears.forEach((year, yearIndex) => {
+                // Calculate the height needed for this academic year
+                const yearHeight = calculateYearHeight(year);
+                
+                // Check if this year would be cut across pages, if so, start a new page
+                if (currentY + yearHeight > pageHeight - margin) {
+                    pdf.addPage();
+                    currentY = margin;
+                }
+                
+                const yearNumber = year.dataset.year;
+                const yearNames = ['First', 'Second', 'Third', 'Fourth', 'Fifth'];
+                const yearTitle = `${yearNames[yearNumber - 1] || yearNumber + 'th'} Year`;
+                
+                // Year header
+                pdf.setFont('helvetica', 'bold');
+                pdf.setFontSize(12);
+                pdf.setTextColor(13, 27, 64); // #0D1B40
+                pdf.text(yearTitle, margin, currentY);
+                
+                // Get total credits for this year
+                const creditsDisplay = year.querySelector('.credits').textContent;
+                pdf.setFont('helvetica', 'normal');
+                pdf.setFontSize(10);
+                pdf.setTextColor(227, 93, 13); // #E35D0D
+                pdf.text(creditsDisplay, pageWidth - margin, currentY, { align: 'right' });
+                
+                currentY += 7;
+                
+                // Create a table for semesters
+                const semesters = year.querySelectorAll('.semester');
+                const colWidth = contentWidth / 2;
+                
+                // Headers row
+                pdf.setDrawColor(180, 180, 180);
+                pdf.setFillColor(230, 230, 230);
+                pdf.rect(margin, currentY, contentWidth, 8, 'F');
+                
+                pdf.setFont('helvetica', 'bold');
+                pdf.setFontSize(10);
+                pdf.setTextColor(13, 27, 64); // #0D1B40
+                pdf.text("Fall Semester", margin + 5, currentY + 5);
+                pdf.text("Spring Semester", margin + colWidth + 5, currentY + 5);
+                
+                currentY += 8;
+                
+                // Calculate required height for this year's courses
+                let maxCoursesCount = 0;
+                semesters.forEach(semester => {
+                    const courseCount = semester.querySelectorAll('.course').length;
+                    maxCoursesCount = Math.max(maxCoursesCount, courseCount);
+                });
+                
+                // Minimum height for semester boxes
+                const minSemesterHeight = 40;
+                const courseHeight = 12;
+                const semesterHeight = Math.max(minSemesterHeight, maxCoursesCount * courseHeight + 5);
+                
+                // Draw semester containers
+                pdf.setDrawColor(220, 220, 220);
+                pdf.setFillColor(249, 249, 249); // #f9f9f9
+                pdf.rect(margin, currentY, colWidth - 2, semesterHeight, 'F');
+                pdf.rect(margin + colWidth, currentY, colWidth, semesterHeight, 'F');
+                
+                // Add courses for each semester
+                semesters.forEach((semester, semIndex) => {
+                    const semX = margin + (semIndex * colWidth) + 5;
+                    let semY = currentY + 5;
+                    
+                    const courses = semester.querySelectorAll('.course');
+                    courses.forEach(course => {
+                        // Course title
+                        const courseTitle = course.querySelector('h4').textContent;
+                        pdf.setFont('helvetica', 'bold');
+                        pdf.setFontSize(9);
+                        pdf.setTextColor(13, 27, 64); // #0D1B40
+                        pdf.text(courseTitle, semX, semY);
+                        
+                        // Get course credits and category
+                        const courseCredits = course.dataset.credits || "?";
+                        const category = course.dataset.category || 'unknown';
+                        
+                        let categoryLabel = '';
+                        switch(category) {
+                            case 'major':
+                                categoryLabel = 'Major';
+                                break;
+                            case 'minor':
+                                categoryLabel = 'Minor';
+                                break;
+                            case 'technical':
+                                categoryLabel = 'Tech Elective';
+                                break;
+                            case 'genEd':
+                                categoryLabel = 'GenEd';
+                                if (course.dataset.genEdType) {
+                                    switch(course.dataset.genEdType) {
+                                        case 'humanities':
+                                            categoryLabel += ' (Humanities)';
+                                            break;
+                                        case 'social':
+                                            categoryLabel += ' (Social)';
+                                            break;
+                                        case 'natural':
+                                            categoryLabel += ' (Natural)';
+                                            break;
+                                        case 'other':
+                                            categoryLabel += ' (Other)';
+                                            break;
+                                    }
+                                }
+                                break;
+                            default:
+                                categoryLabel = '';
+                        }
+                        
+                        // Course credits and category
+                        pdf.setFont('helvetica', 'normal');
+                        pdf.setFontSize(8);
+                        pdf.setTextColor(227, 93, 13); // #E35D0D
+                        pdf.text(`${courseCredits} credits - ${categoryLabel}`, semX, semY + 4);
+                        
+                        semY += courseHeight;
+                    });
+                });
+                
+                currentY += semesterHeight + 10;
+            });
+            
+            // Add total credits summary
+            if (currentY > pageHeight - 30) {
+                pdf.addPage();
+                currentY = margin;
+            }
+            
+            // Total credits box
+            const totalCredits = document.getElementById('total-credits').textContent;
+            pdf.setDrawColor(200, 200, 200);
+            pdf.setFillColor(245, 247, 250); // #f5f7fa
+            pdf.rect(margin, currentY, contentWidth, 20, 'F');
+            
+            pdf.setFont('helvetica', 'bold');
+            pdf.setFontSize(12);
+            pdf.setTextColor(13, 27, 64); // #0D1B40
+            pdf.text(`Total Credits: ${totalCredits} / 128`, pageWidth / 2, currentY + 8, { align: 'center' });
+            
+            pdf.setFont('helvetica', 'normal');
+            pdf.setFontSize(8);
+            pdf.text("This plan was generated using CoursePilot Course Planner", pageWidth / 2, currentY + 15, { align: 'center' });
+            
+            // Generate filename based on user data
+            const major = userData.major || 'CoursePlan';
+            const filename = `${major}_CoursePlan_${new Date().toLocaleDateString().replace(/\//g, '-')}.pdf`;
+            
+            // Save the PDF
+            pdf.save(filename);
+            
+            // Remove loading message
+            document.body.removeChild(loadingMessage);
+        }
+
+        // Helper function to calculate the height an academic year will need in the PDF
+        function calculateYearHeight(yearElement) {
+            const minSemesterHeight = 40;
+            const courseHeight = 12;
+            const headerHeight = 15;
+            
+            // Find the maximum number of courses in a semester
+            let maxCoursesCount = 0;
+            const semesters = yearElement.querySelectorAll('.semester');
+            semesters.forEach(semester => {
+                const courseCount = semester.querySelectorAll('.course').length;
+                maxCoursesCount = Math.max(maxCoursesCount, courseCount);
+            });
+            
+            // Calculate the semester height
+            const semesterHeight = Math.max(minSemesterHeight, maxCoursesCount * courseHeight + 5);
+            
+            // Total height = header + semester height + padding
+            return headerHeight + semesterHeight + 10;
+        }
+    </script>
+    </body>
+    <footer class="site-footer">
+        <div class="footer-container">
+            <div class="footer-logo">
+                <img src="../asset/logo.png" alt="CoursePilot Logo">
+                <p>Navigating your academic journey</p>
+            </div>
+            
+            <div class="footer-links">
+                <div class="footer-col">
+                    <h4>Features</h4>
+                    <ul>
+                        <li><a href="../html/course_explore.html">Course Explorer</a></li>
+                        <li><a href="../html/major_select.html">Course Planner</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-col">
+                    <h4>Resources</h4>
+                    <ul>
+                        <li><a href="../html/academic_calendar.html">Academic Calendar</a></li>
+                        <li><a href="../html/faq.html">FAQ</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-col">
+                    <h4>About</h4>
+                    <ul>
+                        <li><a href="../html/privacy_policy.html">Privacy Policy</a></li>
+                        <li><a href="../html/terms.html">Terms of Service</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="footer-social">
+                <h4>Connect With Us</h4>
+                <div class="social-icons">
+                    <a href="#" class="social-icon"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" class="social-icon"><i class="fab fa-twitter"></i></a>
+                    <a href="#" class="social-icon"><i class="fab fa-instagram"></i></a>
+                    <a href="#" class="social-icon"><i class="fab fa-linkedin-in"></i></a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer-bottom">
+            <p>&copy; 2025 CoursePilot. All rights reserved.</p>
+        </div>
+    </footer>
+    </html>

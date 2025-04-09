@@ -1,0 +1,135 @@
+.site-footer {
+    background-color: #0D1B40;
+    color: #fff;
+    padding: 40px 0 20px;
+    margin-top: 60px;
+    font-family: Arial, sans-serif;
+}
+
+.footer-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 30px;
+}
+
+.footer-logo {
+    flex: 1 1 250px;
+    margin-bottom: 20px;
+}
+
+.footer-logo img {
+    max-width: 180px;
+    margin-bottom: 15px;
+}
+
+.footer-logo p {
+    font-size: 14px;
+    opacity: 0.8;
+}
+
+.footer-links {
+    flex: 2 1 500px;
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+}
+
+.footer-col {
+    flex: 1 1 150px;
+    margin-bottom: 20px;
+}
+
+.footer-col h4 {
+    color: #E35D0D;
+    font-size: 18px;
+    margin-bottom: 15px;
+    font-weight: 600;
+}
+
+.footer-col ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.footer-col ul li {
+    margin-bottom: 10px;
+}
+
+.footer-col ul li a {
+    color: #fff;
+    text-decoration: none;
+    font-size: 14px;
+    transition: color 0.3s;
+    opacity: 0.75;
+}
+
+.footer-col ul li a:hover {
+    color: #E35D0D;
+    opacity: 1;
+    text-decoration: underline;
+}
+
+.footer-social {
+    flex: 1 1 250px;
+}
+
+.footer-social h4 {
+    color: #E35D0D;
+    font-size: 18px;
+    margin-bottom: 15px;
+    font-weight: 600;
+}
+
+.social-icons {
+    display: flex;
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.social-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    text-decoration: none;
+    transition: all 0.3s;
+}
+
+.social-icon:hover {
+    background-color: #E35D0D;
+    transform: translateY(-3px);
+}
+
+.footer-bottom {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding-top: 20px;
+    margin-top: 30px;
+    text-align: center;
+    font-size: 14px;
+    opacity: 0.7;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .footer-container {
+        flex-direction: column;
+    }
+    
+    .footer-links {
+        margin-top: 20px;
+    }
+    
+    .footer-social {
+        margin-top: 10px;
+        width: 100%;
+    }
+}
