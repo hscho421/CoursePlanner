@@ -32,7 +32,10 @@ def raw_course_data(url, year, semester, department, courseNumber, params=None):
     try:
         courseUrl = f"{url}/{year}/{semester}/{department}/{courseNumber}.xml"
         print(f"Requesting course data from: {courseUrl}")
-        response = requests.get(courseUrl, params=params)
+        headers = {
+            "User-Agent": "Mozilla/5.0"
+        }
+        response = requests.get(courseUrl, headers=headers, params=params)
         response.raise_for_status()
         return response.text
     except requests.exceptions.RequestException as e:
