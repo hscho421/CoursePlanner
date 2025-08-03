@@ -82,16 +82,22 @@ def test_uiuc_api(department, course_number, year="2024", semester="fall", verbo
         print("\n2. Testing with browser headers...")
     
     headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-        'Accept': 'application/xml, text/xml, */*',
-        'Accept-Language': 'en-US,en;q=0.9',
-        'Accept-Encoding': 'gzip, deflate',
-        'Connection': 'keep-alive'
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.5',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'DNT': '1',
+        'Connection': 'keep-alive',
+        'Upgrade-Insecure-Requests': '1',
+        'Sec-Fetch-Dest': 'document',
+        'Sec-Fetch-Mode': 'navigate',
+        'Sec-Fetch-Site': 'none',
+        'Cache-Control': 'max-age=0'
     }
     
     try:
-        time.sleep(1)  # Be respectful
-        response = requests.get(api_url, headers=headers, timeout=10)
+        time.sleep(2)  # Longer delay to avoid rate limiting
+        response = requests.get(api_url, headers=headers, timeout=15)
         test_results["tests"].append({
             "test": "browser_headers",
             "status_code": response.status_code,
@@ -140,8 +146,8 @@ def test_uiuc_api(department, course_number, year="2024", semester="fall", verbo
     
     dept_url = f"{base_url}/{year}/{semester}/{department}.xml"
     try:
-        time.sleep(1)
-        response = requests.get(dept_url, headers=headers, timeout=10)
+        time.sleep(3)  # Even longer delay
+        response = requests.get(dept_url, headers=headers, timeout=15)
         test_results["tests"].append({
             "test": "department_level",
             "status_code": response.status_code,
@@ -182,8 +188,8 @@ def test_uiuc_api(department, course_number, year="2024", semester="fall", verbo
     
     base_api_url = f"{base_url}.xml"
     try:
-        time.sleep(1)
-        response = requests.get(base_api_url, headers=headers, timeout=10)
+        time.sleep(3)  # Longer delay
+        response = requests.get(base_api_url, headers=headers, timeout=15)
         test_results["tests"].append({
             "test": "base_api",
             "status_code": response.status_code,
