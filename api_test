@@ -1,0 +1,278 @@
+import requests
+import xml.etree.ElementTree as ET
+import time
+from urllib.parse import quote
+
+def test_uiuc_api(department, course_number, year="2024", semester="fall", verbose=True):
+    """
+    Test the University of Illinois Course API
+    
+    Args:
+        department (str): Department code (e.g., "CS", "MATH", "ECE")
+        course_number (str): Course number (e.g., "409", "173", "225")
+        year (str): Year (default: "2024")
+        semester (str): Semester - "fall", "spring", or "summer" (default: "fall")
+        verbose (bool): Print detailed information
+    
+    Returns:
+        dict: Test results with status, data, and any errors
+    """
+    
+    # Ensure inputs are properly formatted
+    department = department.upper().strip()
+    course_number = str(course_number).strip()
+    semester = semester.lower().strip()
+    year = str(year).strip()
+    
+    if verbose:
+        print(f"Testing: {department} {course_number} for {semester.title()} {year}")
+        print("=" * 50)
+    
+    # Construct the API URL
+    base_url = "http://courses.illinois.edu/cisapp/explorer/schedule"
+    api_url = f"{base_url}/{year}/{semester}/{department}/{course_number}.xml"
+    
+    if verbose:
+        print(f"API URL: {api_url}")
+    
+    # Test different scenarios
+    test_results = {
+        "url": api_url,
+        "department": department,
+        "course_number": course_number,
+        "semester": semester,
+        "year": year,
+        "tests": []
+    }
+    
+    # Test 1: No headers (bare request)
+    if verbose:
+        print("\n1. Testing with no headers...")
+    
+    try:
+        response = requests.get(api_url, timeout=10)
+        test_results["tests"].append({
+            "test": "no_headers",
+            "status_code": response.status_code,
+            "success": response.status_code == 200,
+            "response_length": len(response.text),
+            "error": None
+        })
+        if verbose:
+            print(f"   Status: {response.status_code}")
+            print(f"   Response length: {len(response.text)}")
+            if response.status_code == 200:
+                print("   ✅ SUCCESS!")
+            else:
+                print(f"   ❌ FAILED: {response.status_code}")
+                
+    except Exception as e:
+        test_results["tests"].append({
+            "test": "no_headers",
+            "status_code": None,
+            "success": False,
+            "response_length": 0,
+            "error": str(e)
+        })
+        if verbose:
+            print(f"   ❌ ERROR: {e}")
+    
+    # Test 2: With browser-like headers
+    if verbose:
+        print("\n2. Testing with browser headers...")
+    
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+        'Accept': 'application/xml, text/xml, */*',
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Accept-Encoding': 'gzip, deflate',
+        'Connection': 'keep-alive'
+    }
+    
+    try:
+        time.sleep(1)  # Be respectful
+        response = requests.get(api_url, headers=headers, timeout=10)
+        test_results["tests"].append({
+            "test": "browser_headers",
+            "status_code": response.status_code,
+            "success": response.status_code == 200,
+            "response_length": len(response.text),
+            "error": None
+        })
+        if verbose:
+            print(f"   Status: {response.status_code}")
+            print(f"   Response length: {len(response.text)}")
+            if response.status_code == 200:
+                print("   ✅ SUCCESS!")
+                # Try to parse the XML
+                try:
+                    root = ET.fromstring(response.text)
+                    title = root.find(".//label")
+                    description = root.find(".//description")
+                    credits = root.find(".//creditHours")
+                    
+                    if title is not None:
+                        print(f"   Course: {title.text}")
+                    if credits is not None:
+                        print(f"   Credits: {credits.text}")
+                    if description is not None:
+                        print(f"   Description: {description.text[:100]}...")
+                        
+                except ET.ParseError:
+                    print("   ⚠️  Valid response but couldn't parse XML")
+            else:
+                print(f"   ❌ FAILED: {response.status_code}")
+                
+    except Exception as e:
+        test_results["tests"].append({
+            "test": "browser_headers",
+            "status_code": None,
+            "success": False,
+            "response_length": 0,
+            "error": str(e)
+        })
+        if verbose:
+            print(f"   ❌ ERROR: {e}")
+    
+    # Test 3: Try the department level to see if that works
+    if verbose:
+        print(f"\n3. Testing department level ({department})...")
+    
+    dept_url = f"{base_url}/{year}/{semester}/{department}.xml"
+    try:
+        time.sleep(1)
+        response = requests.get(dept_url, headers=headers, timeout=10)
+        test_results["tests"].append({
+            "test": "department_level",
+            "status_code": response.status_code,
+            "success": response.status_code == 200,
+            "response_length": len(response.text),
+            "error": None,
+            "url": dept_url
+        })
+        if verbose:
+            print(f"   URL: {dept_url}")
+            print(f"   Status: {response.status_code}")
+            if response.status_code == 200:
+                print("   ✅ Department level works!")
+                # Count courses in department
+                try:
+                    root = ET.fromstring(response.text)
+                    courses = root.findall(".//course")
+                    print(f"   Found {len(courses)} courses in {department}")
+                except:
+                    pass
+            else:
+                print(f"   ❌ Department level failed: {response.status_code}")
+    except Exception as e:
+        test_results["tests"].append({
+            "test": "department_level", 
+            "status_code": None,
+            "success": False,
+            "response_length": 0,
+            "error": str(e),
+            "url": dept_url
+        })
+        if verbose:
+            print(f"   ❌ ERROR: {e}")
+    
+    # Test 4: Try the base API to see if it's working at all
+    if verbose:
+        print("\n4. Testing base API...")
+    
+    base_api_url = f"{base_url}.xml"
+    try:
+        time.sleep(1)
+        response = requests.get(base_api_url, headers=headers, timeout=10)
+        test_results["tests"].append({
+            "test": "base_api",
+            "status_code": response.status_code,
+            "success": response.status_code == 200,
+            "response_length": len(response.text),
+            "error": None,
+            "url": base_api_url
+        })
+        if verbose:
+            print(f"   URL: {base_api_url}")
+            print(f"   Status: {response.status_code}")
+            if response.status_code == 200:
+                print("   ✅ Base API works!")
+            else:
+                print(f"   ❌ Base API failed: {response.status_code}")
+    except Exception as e:
+        test_results["tests"].append({
+            "test": "base_api",
+            "status_code": None,
+            "success": False,
+            "response_length": 0,
+            "error": str(e),
+            "url": base_api_url
+        })
+        if verbose:
+            print(f"   ❌ ERROR: {e}")
+    
+    # Summary
+    if verbose:
+        print("\n" + "=" * 50)
+        print("SUMMARY:")
+        successful_tests = [t for t in test_results["tests"] if t["success"]]
+        print(f"Successful tests: {len(successful_tests)}/{len(test_results['tests'])}")
+        
+        if successful_tests:
+            print("✅ API is accessible with these methods:")
+            for test in successful_tests:
+                print(f"   - {test['test']}")
+        else:
+            print("❌ All tests failed - API may be blocked or course doesn't exist")
+    
+    return test_results
+
+def test_multiple_courses():
+    """Test multiple known courses to see which ones work"""
+    
+    test_courses = [
+        ("CS", "173"),   # Discrete Structures - very common
+        ("CS", "225"),   # Data Structures - very common  
+        ("CS", "409"),   # Your original course
+        ("MATH", "220"), # Calc I - should definitely exist
+        ("ECE", "220"),  # Computer Systems & Programming
+    ]
+    
+    print("Testing multiple courses to find patterns...")
+    print("=" * 60)
+    
+    results = []
+    for dept, num in test_courses:
+        print(f"\nTesting {dept} {num}:")
+        result = test_uiuc_api(dept, num, verbose=False)
+        results.append(result)
+        
+        # Quick summary for this course
+        successful = any(t["success"] for t in result["tests"])
+        if successful:
+            print(f"✅ {dept} {num} - API accessible")
+        else:
+            print(f"❌ {dept} {num} - API blocked/unavailable")
+    
+    return results
+
+if __name__ == "__main__":
+    # Example usage
+    print("UIUC Course API Tester")
+    print("=" * 60)
+    
+    # Test a specific course
+    print("Testing CS 409...")
+    result = test_uiuc_api("CS", "409")
+    
+    print("\n" + "=" * 60)
+    
+    # Test multiple courses
+    test_multiple_courses()
+    
+    print("\n" + "=" * 60)
+    print("Instructions:")
+    print("1. Run: test_uiuc_api('CS', '409') to test a specific course")
+    print("2. Run: test_multiple_courses() to test several courses")
+    print("3. Try different departments: ECE, MATH, PHYS, etc.")
+    print("4. Try different semesters: 'spring', 'fall', 'summer'")

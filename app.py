@@ -5,6 +5,7 @@ import re
 from mysql.connector import pooling
 from dotenv import load_dotenv
 import os
+import time
 
 # Load environment variables
 load_dotenv()
@@ -28,21 +29,54 @@ except Exception as e:
     db_pool = None
 
 # Helper functions
-def raw_course_data(url, year, semester, department, courseNumber, params=None):
+def raw_course_data(year, semester, department, courseNumber, params=None):
+    """
+    Fetch course data from University of Illinois API
+    Fixed URL structure and added proper error handling
+    """
     try:
-        courseUrl = f"{url}/{year}/{semester}/{department}/{courseNumber}.xml"
+        # Correct base URL with cisapp/explorer path
+        base_url = "http://courses.illinois.edu/cisapp/explorer/schedule"
+        
+        # Ensure semester is lowercase as required by API
+        semester = semester.lower()
+        
+        # Construct URL with .xml extension
+        courseUrl = f"{base_url}/{year}/{semester}/{department}/{courseNumber}.xml"
         print(f"Requesting course data from: {courseUrl}")
+        
+        # Add headers to mimic browser request
         headers = {
-            "User-Agent": "Mozilla/5.0"
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+            'Accept': 'application/xml, text/xml, */*',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'Accept-Encoding': 'gzip, deflate',
+            'Connection': 'keep-alive'
         }
-        response = requests.get(courseUrl, headers=headers, params=params)
+        
+        # Add a small delay to be respectful to the API
+        time.sleep(0.5)
+        
+        response = requests.get(courseUrl, params=params, headers=headers, timeout=10)
         response.raise_for_status()
         return response.text
+        
+    except requests.exceptions.HTTPError as e:
+        if e.response.status_code == 404:
+            print(f"Course {department} {courseNumber} not found for {semester} {year}")
+            return None
+        elif e.response.status_code == 403:
+            print(f"Access forbidden to course data. This might be due to rate limiting or API restrictions.")
+            return None
+        else:
+            print(f"HTTP error fetching course data: {str(e)}")
+            return None
     except requests.exceptions.RequestException as e:
         print(f"Error fetching course data: {str(e)}")
         return None
 
 def extract_tag(rawData, tag):
+    """Extract specific tag from XML data"""
     try:
         root = ET.fromstring(rawData)
         element = root.find(f".//{tag}")
@@ -52,6 +86,7 @@ def extract_tag(rawData, tag):
         return None
 
 def get_prerequisite(sectionInformation):
+    """Extract prerequisite courses from section information"""
     if not sectionInformation:
         return None
     range_match = re.search(r"Prerequisite:(.*?)[.]", sectionInformation, re.IGNORECASE)
@@ -60,6 +95,7 @@ def get_prerequisite(sectionInformation):
     return re.findall(r"\b[A-Z]{2,4} \d{3}\b", sectionInformation)
 
 def get_gpa(subject, number):
+    """Get GPA data from database"""
     if not db_pool:
         print("Database pool is not available")
         return None
@@ -102,12 +138,11 @@ def index():
     return send_from_directory('html', 'mainpage.html')
 
 # Flask API routes
-# Update the get_course_info route in backend.py to extract and return credit hours
 @app.route('/course', methods=['GET'])
 def get_course_info():
-    base_url = "http://courses.illinois.edu/cisapp/explorer/schedule"
+    """Get course information from University of Illinois API"""
     year = request.args.get('year', '2024')
-    semester = request.args.get('semester', 'Fall')
+    semester = request.args.get('semester', 'fall')  # Default to lowercase
     department = request.args.get('department', '').upper()
     courseNumber = request.args.get('courseNumber', '')
 
@@ -115,257 +150,97 @@ def get_course_info():
         return jsonify({"error": "Missing department or courseNumber"}), 400
 
     try:
-        courses_data = raw_course_data(base_url, year, semester, department, courseNumber)
+        # Fetch course data with corrected function
+        courses_data = raw_course_data(year, semester, department, courseNumber)
         if not courses_data:
-            return jsonify({"error": "Unable to fetch course data"}), 404
+            return jsonify({"error": "Unable to fetch course data. This could be due to the course not being offered in the specified semester or API limitations."}), 404
 
+        # Extract information from XML
         term = extract_tag(courses_data, "term")
         title = extract_tag(courses_data, "label")
         description = extract_tag(courses_data, "description")
         sectionInformation = extract_tag(courses_data, "courseSectionInformation")
-        
-        # Extract credit hours
         creditHours = extract_tag(courses_data, "creditHours")
         
-        # Parse prerequisites if needed
+        # Parse prerequisites if available
         prerequisite_courses = None
         if sectionInformation:
             prerequisite_courses = get_prerequisite(sectionInformation)
         
-        # Get GPA information
+        # Get GPA information from database
         gpa = get_gpa(department, courseNumber)
 
         return jsonify({
             "term": term,
             "title": title,
             "description": description,
-            "creditHours": creditHours,  # Added credit hours to the response
+            "creditHours": creditHours,
             "prerequisite": sectionInformation or "No prerequisites information available",
             "prerequisite_courses": prerequisite_courses,
             "average_gpa": gpa if gpa else "No GPA data found"
         })
+        
     except Exception as e:
         print(f"Error processing course info: {str(e)}")
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": f"Internal server error: {str(e)}"}), 500
 
-
-
-
-
-
-
-
-# Add these routes to your backend.py file
-
-@app.route('/major-requirements', methods=['GET'])
-def get_major_requirements():
-    """
-    Get the requirements for a specific major and track (if applicable)
-    """
-    major = request.args.get('major', '').strip()
-    track = request.args.get('track', '').strip()
-    
-    if not major:
-        return jsonify({"error": "Missing major parameter"}), 400
-    
-    # In a production app, this would come from a database
-    # For now, we're using hardcoded data for demo purposes
-    
-    # Define some sample requirements by major
-    major_requirements = {
-        "Computer Science": {
-            "core": [
-                {"name": "CS Core", "credits": 28},
-                {"name": "Math Courses", "credits": 12},
-                {"name": "Science Courses", "credits": 8}
-            ],
-            "technical": [
-                {"name": "CS Technical Electives", "credits": 12},
-                {"name": "Free Electives", "credits": 6}
-            ],
-            "genEd": [
-                {"name": "Humanities", "credits": 6},
-                {"name": "Social Sciences", "credits": 6},
-                {"name": "Composition", "credits": 4},
-                {"name": "Advanced Composition", "credits": 3}
-            ],
-            "total_credits": 128
-        },
-        "Electrical Engineering": {
-            "core": [
-                {"name": "EE Core", "credits": 32},
-                {"name": "Math Courses", "credits": 16},
-                {"name": "Physics Courses", "credits": 8}
-            ],
-            "technical": [
-                {"name": "EE Technical Electives", "credits": 12},
-                {"name": "Free Electives", "credits": 6}
-            ],
-            "genEd": [
-                {"name": "Humanities", "credits": 6},
-                {"name": "Social Sciences", "credits": 6},
-                {"name": "Composition", "credits": 4},
-                {"name": "Advanced Composition", "credits": 3}
-            ],
-            "total_credits": 128
-        }
-    }
-    
-    # Default for unknown majors
-    default_requirements = {
-        "core": [
-            {"name": "Major Core Courses", "credits": 24},
-            {"name": "Math Courses", "credits": 12},
-            {"name": "Science Courses", "credits": 8}
-        ],
-        "technical": [
-            {"name": "Technical Electives", "credits": 12},
-            {"name": "Free Electives", "credits": 6}
-        ],
-        "genEd": [
-            {"name": "Humanities", "credits": 6},
-            {"name": "Social Sciences", "credits": 6},
-            {"name": "Composition", "credits": 4},
-            {"name": "Advanced Composition", "credits": 3}
-        ],
-        "total_credits": 128
-    }
-    
-    # Get the requirements for the requested major, or use default if not found
-    requirements = major_requirements.get(major, default_requirements)
-    
-    # If there's a track, we could customize requirements here
-    if track:
-        # Example: For CS majors with a Data Science track, modify technical electives
-        if major == "Computer Science" and track == "Data Science":
-            requirements["technical"] = [
-                {"name": "Data Science Electives", "credits": 12},
-                {"name": "Free Electives", "credits": 6}
-            ]
-    
-    # Now let's add some recommended courses by looking up courses in the database
-    requirements["recommended_courses"] = {"core": [], "technical": [], "genEd": []}
-    
-    # Only attempt to add recommended courses if we have a database connection
-    if db_pool:
-        try:
-            conn = db_pool.get_connection()
-            cursor = conn.cursor(dictionary=True)
-            
-            # Example query to get core courses for a major
-            # Adjust this query based on your actual database schema
-            query = """
-                SELECT 
-                    CONCAT(Subject, ' ', Number) as code,
-                    Title as title,
-                    Description as description,
-                    Credit_Hours as credits
-                FROM courses
-                WHERE Major = %s
-                AND Is_Core = 1
-                LIMIT 6
-            """
-            
-            # This assumes your database has fields for Major and Is_Core
-            # Adjust the query based on your actual schema
-            cursor.execute(query, (major,))
-            core_courses = cursor.fetchall()
-            
-            for course in core_courses:
-                if course:
-                    # Add category for frontend display
-                    course["category"] = "core"
-                    requirements["recommended_courses"]["core"].append(course)
-            
-            # You could add similar queries for technical and genEd courses
-            
-            cursor.close()
-            conn.close()
-            
-        except Exception as e:
-            print(f"Database error fetching recommended courses: {str(e)}")
-    
-    return jsonify(requirements)
-
-@app.route('/recommended-courses', methods=['GET'])
-def get_recommended_courses():
-    """
-    Get recommended courses for a semester based on major, year, and term
-    """
-    major = request.args.get('major', '').strip()
-    year = request.args.get('year', '1').strip()
-    term = request.args.get('term', 'Fall').strip()
-    
-    if not major:
-        return jsonify({"error": "Missing major parameter"}), 400
-    
-    # Convert year to int for comparison
+@app.route('/test-api', methods=['GET'])
+def test_api():
+    """Test endpoint to verify API connectivity"""
     try:
-        year_num = int(year)
-    except ValueError:
-        return jsonify({"error": "Invalid year parameter"}), 400
-    
-    # Default recommendations in case database lookup fails
-    default_recommendations = [
-        {"code": "MATH 220", "title": "Calculus I", "credits": 4, "category": "core"},
-        {"code": "RHET 105", "title": "Writing and Research", "credits": 4, "category": "genEd"},
-        {"code": "Science Elective", "title": "Science Course", "credits": 4, "category": "core"},
-        {"code": "Humanities Elective", "title": "Humanities Gen Ed", "credits": 3, "category": "genEd"}
-    ]
-    
-    # If we don't have a database connection, return default recommendations
-    if not db_pool:
-        return jsonify(default_recommendations)
-    
-    # Look up recommendations from the database
-    try:
-        conn = db_pool.get_connection()
-        cursor = conn.cursor(dictionary=True)
-        
-        # Example query to get recommended courses from a database
-        # Adjust this query based on your actual database schema
-        query = """
-            SELECT 
-                CONCAT(Subject, ' ', Number) as code,
-                Title as title,
-                Description as description,
-                Credit_Hours as credits,
-                Course_Type as category
-            FROM recommended_courses
-            WHERE Major = %s
-            AND Year = %s
-            AND Term = %s
-        """
-        
-        # This assumes you have a recommended_courses table
-        # If you don't have this exact schema, you'll need to adjust the query
-        cursor.execute(query, (major, year_num, term))
-        courses = cursor.fetchall()
-        
-        cursor.close()
-        conn.close()
-        
-        # If we found courses, return them, otherwise use defaults
-        if courses and len(courses) > 0:
-            return jsonify(courses)
+        # Test with a known course
+        test_data = raw_course_data("2024", "fall", "CS", "173")
+        if test_data:
+            return jsonify({
+                "status": "success",
+                "message": "API is working",
+                "sample_data_length": len(test_data)
+            })
         else:
-            return jsonify(default_recommendations)
-            
+            return jsonify({
+                "status": "error",
+                "message": "API test failed"
+            }), 500
     except Exception as e:
-        print(f"Database error fetching recommended courses: {str(e)}")
-        return jsonify(default_recommendations)
+        return jsonify({
+            "status": "error",
+            "message": f"API test error: {str(e)}"
+        }), 500
+
+@app.route('/available-years', methods=['GET'])
+def get_available_years():
+    """Get available years from the API"""
+    try:
+        url = "http://courses.illinois.edu/cisapp/explorer/schedule.xml"
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        }
+        
+        response = requests.get(url, headers=headers, timeout=10)
+        response.raise_for_status()
+        
+        # Parse XML to extract years
+        root = ET.fromstring(response.text)
+        years = []
+        for year_elem in root.findall(".//year"):
+            year_id = year_elem.get('id')
+            if year_id:
+                years.append(year_id)
+        
+        return jsonify({"years": years})
+        
+    except Exception as e:
+        print(f"Error fetching available years: {str(e)}")
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/course-search', methods=['GET'])
 def search_courses():
-    """
-    Search for courses by keyword or code
-    """
+    """Search for courses by keyword or code"""
     query = request.args.get('q', '').strip()
     
     if not query or len(query) < 2:
         return jsonify({"error": "Search query must be at least 2 characters"}), 400
     
-    # If we don't have a database connection, return an empty list
     if not db_pool:
         return jsonify([])
     
@@ -373,7 +248,6 @@ def search_courses():
         conn = db_pool.get_connection()
         cursor = conn.cursor(dictionary=True)
         
-        # Search for courses in the database
         search_query = """
             SELECT 
                 CONCAT(Subject, ' ', Number) as code,
@@ -389,29 +263,23 @@ def search_courses():
             LIMIT 20
         """
         
-        # Use wildcards to search for the query in different fields
         search_param = f"%{query}%"
         cursor.execute(search_query, (search_param, search_param, search_param, search_param))
         courses = cursor.fetchall()
         
-        # Add a category field to each course for frontend display
-        # In a real app, this might come from the database
         for course in courses:
-            # Ensure credits is properly formatted as a number
             if isinstance(course["credits"], str):
                 try:
-                    # Try to extract just the number part if it has text like "3 hours"
                     credit_match = re.search(r'(\d+)', course["credits"])
                     if credit_match:
                         course["credits"] = int(credit_match.group(1))
                     else:
                         course["credits"] = int(course["credits"])
                 except (ValueError, TypeError):
-                    course["credits"] = 3  # Default if parsing fails
+                    course["credits"] = 3
             elif course["credits"] is None:
-                course["credits"] = 3  # Default if null
+                course["credits"] = 3
             
-            # Simplified logic to categorize courses - adjust based on your needs
             if course["code"].startswith(("MATH", "PHYS", "CHEM")):
                 course["category"] = "core"
             elif course["code"].startswith(("RHET", "ENGL", "HIST", "PSYC")):
@@ -428,187 +296,9 @@ def search_courses():
         print(f"Database error searching courses: {str(e)}")
         return jsonify([])
 
-@app.route('/course-plan-recommendations', methods=['GET'])
-def get_course_plan_recommendations():
-    """
-    Get recommended courses for a course plan based on major, track, and academic year
-    """
-    major = request.args.get('major', '').strip()
-    track = request.args.get('track', '').strip()
-    academic_year = request.args.get('academicYear', '').strip()
-    grad_year = request.args.get('gradYear', '').strip()
-    
-    if not major or not academic_year:
-        return jsonify({"error": "Missing required parameters"}), 400
-    
-    # Calculate how many semesters to plan for
-    current_year = 2025  # Update this to current year in production
-    graduation_year = int(grad_year)
-    years_left = graduation_year - current_year + 1
-    
-    # Map academic_year to numeric value
-    year_mapping = {
-        'freshman': 1,
-        'sophomore': 2,
-        'junior': 3,
-        'senior': 4
-    }
-    
-    start_year = year_mapping.get(academic_year.lower(), 1)
-    
-    # Build a course plan
-    course_plan = {}
-    
-    # Default recommendations for different years and semesters
-    default_recommendations = {
-        1: {  # Freshman
-            'Fall': [
-                {"code": "MATH 220", "title": "Calculus I", "credits": 4, "category": "core"},
-                {"code": "RHET 105", "title": "Writing and Research", "credits": 4, "category": "genEd"},
-                {"code": "CS 101", "title": "Intro to Computing", "credits": 3, "category": "core"},
-                {"code": "PHYS 211", "title": "University Physics: Mechanics", "credits": 4, "category": "core"}
-            ],
-            'Spring': [
-                {"code": "MATH 221", "title": "Calculus II", "credits": 4, "category": "core"},
-                {"code": "CS 125", "title": "Intro to Computer Science", "credits": 4, "category": "core"},
-                {"code": "PHYS 212", "title": "University Physics: Elec & Mag", "credits": 4, "category": "core"},
-                {"code": "GenEd Elective", "title": "Humanities/Social Science", "credits": 3, "category": "genEd"}
-            ]
-        },
-        2: {  # Sophomore
-            'Fall': [
-                {"code": "MATH 231", "title": "Calculus III", "credits": 3, "category": "core"},
-                {"code": "CS 225", "title": "Data Structures", "credits": 4, "category": "core"},
-                {"code": "ECE 120", "title": "Intro to Computing", "credits": 4, "category": "core"},
-                {"code": "GenEd Elective", "title": "Humanities/Social Science", "credits": 3, "category": "genEd"}
-            ],
-            'Spring': [
-                {"code": "MATH 241", "title": "Differential Equations", "credits": 3, "category": "core"},
-                {"code": "CS 233", "title": "Computer Architecture", "credits": 4, "category": "core"},
-                {"code": "ECE 220", "title": "Computer Systems & Programming", "credits": 4, "category": "core"},
-                {"code": "GenEd Elective", "title": "Humanities/Social Science", "credits": 3, "category": "genEd"}
-            ]
-        },
-        3: {  # Junior
-            'Fall': [
-                {"code": "CS 241", "title": "System Programming", "credits": 4, "category": "core"},
-                {"code": "CS 357", "title": "Numerical Methods", "credits": 3, "category": "core"},
-                {"code": "Technical Elective", "title": "Technical Elective", "credits": 3, "category": "technical"},
-                {"code": "GenEd Elective", "title": "Humanities/Social Science", "credits": 3, "category": "genEd"}
-            ],
-            'Spring': [
-                {"code": "CS 374", "title": "Algorithms & Models of Computation", "credits": 4, "category": "core"},
-                {"code": "CS 421", "title": "Programming Languages", "credits": 3, "category": "core"},
-                {"code": "Technical Elective", "title": "Technical Elective", "credits": 3, "category": "technical"},
-                {"code": "Free Elective", "title": "Free Elective", "credits": 3, "category": "technical"}
-            ]
-        },
-        4: {  # Senior
-            'Fall': [
-                {"code": "CS 411", "title": "Database Systems", "credits": 3, "category": "core"},
-                {"code": "CS 431", "title": "Embedded Systems", "credits": 3, "category": "core"},
-                {"code": "Technical Elective", "title": "Technical Elective", "credits": 3, "category": "technical"},
-                {"code": "Free Elective", "title": "Free Elective", "credits": 3, "category": "technical"}
-            ],
-            'Spring': [
-                {"code": "CS 461", "title": "Computer Security", "credits": 4, "category": "core"},
-                {"code": "Technical Elective", "title": "Technical Elective", "credits": 3, "category": "technical"},
-                {"code": "Technical Elective", "title": "Technical Elective", "credits": 3, "category": "technical"},
-                {"code": "Free Elective", "title": "Free Elective", "credits": 3, "category": "technical"}
-            ]
-        }
-    }
-    
-    # Check if we have major-specific recommendations in the database
-    has_db_recommendations = False
-    
-    if db_pool:
-        try:
-            conn = db_pool.get_connection()
-            cursor = conn.cursor(dictionary=True)
-            
-            # Check if we have recommendations for this major
-            query = """
-                SELECT COUNT(*) as count
-                FROM recommended_courses
-                WHERE Major = %s
-            """
-            cursor.execute(query, (major,))
-            result = cursor.fetchone()
-            
-            has_db_recommendations = result and result['count'] > 0
-            
-            cursor.close()
-            conn.close()
-        except Exception as e:
-            print(f"Database error checking for recommendations: {str(e)}")
-    
-    # Build course plan
-    for year in range(start_year, min(start_year + years_left, 5)):
-        for term in ['Fall', 'Spring']:
-            # Key for the semester in the plan
-            current_year_num = current_year + (year - start_year)
-            if term == 'Spring':
-                current_year_num += 1
-                
-            semester_key = f"{term.lower()}-{current_year_num}"
-            
-            # Get recommendations from database if available
-            if has_db_recommendations and db_pool:
-                try:
-                    conn = db_pool.get_connection()
-                    cursor = conn.cursor(dictionary=True)
-                    
-                    query = """
-                        SELECT 
-                            CONCAT(Subject, ' ', Number) as code,
-                            Title as title,
-                            Credit_Hours as credits,
-                            Course_Type as category
-                        FROM recommended_courses
-                        WHERE Major = %s
-                        AND Year = %s
-                        AND Term = %s
-                    """
-                    
-                    if track:
-                        query += " AND (Track = %s OR Track IS NULL OR Track = '')"
-                        cursor.execute(query, (major, year, term, track))
-                    else:
-                        query += " AND (Track IS NULL OR Track = '')"
-                        cursor.execute(query, (major, year, term))
-                        
-                    courses = cursor.fetchall()
-                    
-                    if courses and len(courses) > 0:
-                        course_plan[semester_key] = courses
-                    else:
-                        # Fallback to default if no specific recommendations
-                        course_plan[semester_key] = default_recommendations.get(year, {}).get(term, [])
-                    
-                    cursor.close()
-                    conn.close()
-                except Exception as e:
-                    print(f"Database error fetching plan recommendations: {str(e)}")
-                    # Fallback to default recommendations
-                    course_plan[semester_key] = default_recommendations.get(year, {}).get(term, [])
-            else:
-                # Use default recommendations
-                course_plan[semester_key] = default_recommendations.get(year, {}).get(term, [])
-    
-    return jsonify(course_plan)
-
-
-
-
-# Add this route to your backend.py file
-
 @app.route('/majors', methods=['GET'])
 def get_majors():
-    """
-    Get the list of all majors from the database
-    """
-    # If we don't have a database connection, return an empty list
+    """Get the list of all majors from the database"""
     if not db_pool:
         return jsonify([])
     
@@ -616,7 +306,6 @@ def get_majors():
         conn = db_pool.get_connection()
         cursor = conn.cursor(dictionary=True)
         
-        # Query to get all majors from the Majors table
         query = """
             SELECT major_id, major_name
             FROM coursepilot.Majors
@@ -637,9 +326,7 @@ def get_majors():
     
 @app.route('/grade-distribution', methods=['GET'])
 def get_grade_distribution():
-    """
-    Get the grade distribution for a specific course
-    """
+    """Get the grade distribution for a specific course"""
     department = request.args.get('department', '').upper()
     course_number = request.args.get('courseNumber', '')
     
@@ -653,7 +340,6 @@ def get_grade_distribution():
         conn = db_pool.get_connection()
         cursor = conn.cursor(dictionary=True)
         
-        # Query to get grade distribution for the specific course
         query = """
             SELECT 
                 `Subject`, `Number`, `Course Title`,
@@ -676,7 +362,6 @@ def get_grade_distribution():
         if not result:
             return jsonify({"error": "No grade data found for this course"}), 404
             
-        # Process the data for easier visualization
         grades = [
             {"grade": "A+", "count": result["A+"]},
             {"grade": "A", "count": result["A"]},
@@ -704,7 +389,7 @@ def get_grade_distribution():
     except Exception as e:
         print(f"Database error fetching grade distribution: {str(e)}")
         return jsonify({"error": str(e)}), 500
-    
+
 # Run the app
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5500))
