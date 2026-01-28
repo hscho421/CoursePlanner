@@ -1,8 +1,13 @@
 import { useEffect, useMemo, useRef, useState, type DragEvent } from 'react';
 import { supabase } from '../lib/supabase';
-import '../styles/course_planner.css';
-import '../styles/footer.css';
-import logo from '../assets/logo.png';
+import { Header } from '../components/layout/Header';
+import { Footer } from '../components/layout/Footer';
+import { Button } from '../components/ui/Button';
+import { Card } from '../components/ui/Card';
+import { Input } from '../components/ui/Input';
+import { Select } from '../components/ui/Select';
+import { Badge } from '../components/ui/Badge';
+import { ProgressBar } from '../components/ui/ProgressBar';
 
 type CourseResult = {
   subject: string;
@@ -23,6 +28,13 @@ type DragPayload = {
   sourceSemesterId?: string;
 };
 
+const academicYearOptions = [
+  { value: 'freshman', label: 'Freshman' },
+  { value: 'sophomore', label: 'Sophomore' },
+  { value: 'junior', label: 'Junior' },
+  { value: 'senior', label: 'Senior' },
+];
+
 export default function CoursePlanner() {
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(false);
@@ -37,6 +49,7 @@ export default function CoursePlanner() {
   const [transferCredits, setTransferCredits] = useState('0');
   const [plan, setPlan] = useState<Record<string, CourseResult[]>>({});
   const [dragOverId, setDragOverId] = useState<string | null>(null);
+  const [showProfileEdit, setShowProfileEdit] = useState(false);
   const creditsCacheRef = useRef(new Map<string, number>());
 
   const totalRequiredCredits = 128;
@@ -56,7 +69,6 @@ export default function CoursePlanner() {
   }, [semesterCredits]);
 
   const totalCredits = transferCreditsValue + plannedCredits;
-  const progressPercent = Math.min(100, (totalCredits / totalRequiredCredits) * 100);
 
   const semesters = useMemo<Semester[]>(() => {
     const yearNames = ['First', 'Second', 'Third', 'Fourth'];
@@ -77,7 +89,7 @@ export default function CoursePlanner() {
       const yearNumber = yearIndex + 1;
       list.push(
         { id: `Y${yearNumber}-Fall`, yearLabel, term: 'Fall', yearIndex: yearNumber },
-        { id: `Y${yearNumber}-Spring`, yearLabel, term: 'Spring', yearIndex: yearNumber },
+        { id: `Y${yearNumber}-Spring`, yearLabel, term: 'Spring', yearIndex: yearNumber }
       );
     }
 
@@ -291,7 +303,7 @@ export default function CoursePlanner() {
 
           Object.keys(next).forEach((key) => {
             next[key] = (next[key] || []).filter(
-              (item) => `${item.subject}-${item.number}` !== courseKey,
+              (item) => `${item.subject}-${item.number}` !== courseKey
             );
           });
 
@@ -332,14 +344,14 @@ export default function CoursePlanner() {
     setPlan((prev) => ({
       ...prev,
       [semesterId]: (prev[semesterId] || []).filter(
-        (item) => `${item.subject}-${item.number}` !== `${course.subject}-${course.number}`,
+        (item) => `${item.subject}-${item.number}` !== `${course.subject}-${course.number}`
       ),
     }));
   };
 
   const refreshCredits = async () => {
     const allCourses = Object.entries(plan).flatMap(([semesterId, courses]) =>
-      courses.map((course) => ({ semesterId, course })),
+      courses.map((course) => ({ semesterId, course }))
     );
 
     if (!allCourses.length) return;
@@ -348,14 +360,14 @@ export default function CoursePlanner() {
       allCourses.map(async ({ semesterId, course }) => {
         const credits = await resolveCredits(course, true);
         return { semesterId, course: { ...course, credits } };
-      }),
+      })
     );
 
     setPlan((prev) => {
       const next: Record<string, CourseResult[]> = { ...prev };
       updatedEntries.forEach(({ semesterId, course }) => {
         next[semesterId] = (next[semesterId] || []).map((item) =>
-          `${item.subject}-${item.number}` === `${course.subject}-${course.number}` ? course : item,
+          `${item.subject}-${item.number}` === `${course.subject}-${course.number}` ? course : item
         );
       });
       return next;
@@ -367,361 +379,343 @@ export default function CoursePlanner() {
     localStorage.removeItem('coursePlan');
   };
 
+  const majorOptions = majors.map((m) => ({ value: m, label: m }));
+
   return (
-    <div>
-      <header>
-        <div className="logo">
-          <a href="/">
-            <img src={logo} alt="CoursePilot Logo" />
-          </a>
-        </div>
-        <nav className="navbar">
-          <a href="/course-planner">Course Planner</a>
-          <a href="/course-explorer">Course Explorer</a>
-        </nav>
-      </header>
+    <div className="min-h-screen flex flex-col bg-slate-50">
+      <Header />
 
-      <main className="container">
-        <h1 className="main-title">Your Personalized Course Plan</h1>
+      <main className="flex-1 py-6">
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-6">
+          {/* Page Header */}
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold text-slate-800">Course Planner</h1>
+            <p className="text-slate-600 mt-1">
+              Drag and drop courses to build your schedule
+            </p>
+          </div>
 
-        <div className="user-info">
-          <h2>Your Academic Profile</h2>
-          <p>
-            <span className="info-label">Major:</span> <span>{selectedMajor || 'Not selected'}</span>
-          </p>
-          <p>
-            <span className="info-label">Academic Year:</span> <span>{academicYear || 'Not selected'}</span>
-          </p>
-          <p>
-            <span className="info-label">Expected Graduation:</span> <span>{graduationYear || 'Not set'}</span>
-          </p>
-          <p>
-            <span className="info-label">Transfer Credits:</span> <span>{transferCreditsValue}</span> hours
-          </p>
+          {/* Profile Summary Bar */}
+          <Card className="mb-6" padding="sm">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div className="flex flex-wrap items-center gap-6 text-sm">
+                <div>
+                  <span className="text-slate-500">Major:</span>{' '}
+                  <span className="font-medium text-slate-800">
+                    {selectedMajor || 'Not selected'}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-slate-500">Year:</span>{' '}
+                  <span className="font-medium text-slate-800 capitalize">
+                    {academicYear || 'Not selected'}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-slate-500">Graduation:</span>{' '}
+                  <span className="font-medium text-slate-800">
+                    {graduationYear || 'Not set'}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-slate-500">Transfer:</span>{' '}
+                  <span className="font-medium text-slate-800">
+                    {transferCreditsValue} hrs
+                  </span>
+                </div>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowProfileEdit(!showProfileEdit)}
+              >
+                {showProfileEdit ? 'Close' : 'Edit Profile'}
+              </Button>
+            </div>
 
-          <details style={{ marginTop: '16px' }}>
-            <summary style={{ cursor: 'pointer', fontWeight: 600, color: '#0D1B40' }}>Edit Profile</summary>
-            <div style={{ margin: '12px 0' }}>
-              <span className="info-label">Select Major:</span>
-              <div style={{ marginTop: '8px' }}>
-                <select
-                  className="search-input"
-                  onFocus={loadMajors}
-                  onClick={loadMajors}
-                  value={selectedMajor}
-                  onChange={(event) => {
-                    const value = event.target.value;
-                    setSelectedMajor(value);
-                    localStorage.setItem('selectedMajor', value);
-                  }}
-                >
-                  <option value="" disabled>
-                    {majorsLoading ? 'Loading majors...' : 'Choose a major'}
-                  </option>
-                  {majors.map((major) => (
-                    <option key={major} value={major}>
-                      {major}
+            {/* Expandable Profile Edit */}
+            {showProfileEdit && (
+              <div className="mt-4 pt-4 border-t border-slate-100 grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                    Major
+                  </label>
+                  <select
+                    className="w-full px-3 py-2 bg-white border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    onFocus={loadMajors}
+                    value={selectedMajor}
+                    onChange={(e) => {
+                      setSelectedMajor(e.target.value);
+                      localStorage.setItem('selectedMajor', e.target.value);
+                    }}
+                  >
+                    <option value="">
+                      {majorsLoading ? 'Loading...' : 'Select major'}
                     </option>
-                  ))}
-                </select>
-                {majorsError && <div className="error">{majorsError}</div>}
-              </div>
-            </div>
-            <div style={{ margin: '10px 0' }}>
-            <span className="info-label">Academic Year:</span>
-            <div style={{ marginTop: '8px' }}>
-              <select
-                className="search-input"
-                value={academicYear}
-                onChange={(event) => {
-                  const value = event.target.value;
-                  setAcademicYear(value);
-                  localStorage.setItem('academicYear', value);
-                }}
-              >
-                <option value="" disabled>
-                  Select academic year
-                </option>
-                <option value="freshman">Freshman</option>
-                <option value="sophomore">Sophomore</option>
-                <option value="junior">Junior</option>
-                <option value="senior">Senior</option>
-              </select>
-            </div>
-            </div>
-            <div style={{ margin: '10px 0' }}>
-            <span className="info-label">Expected Graduation:</span>
-            <div style={{ marginTop: '8px' }}>
-              <input
-                className="search-input"
-                type="text"
-                inputMode="numeric"
-                placeholder="e.g. 2028"
-                value={graduationYear}
-                onChange={(event) => {
-                  const value = event.target.value.replace(/[^0-9]/g, '').slice(0, 4);
-                  setGraduationYear(value);
-                  localStorage.setItem('graduationYear', value);
-                }}
-              />
-            </div>
-            </div>
-            <div style={{ margin: '10px 0' }}>
-            <span className="info-label">Transfer Credits:</span>
-            <div style={{ marginTop: '8px' }}>
-              <input
-                className="search-input"
-                type="text"
-                inputMode="numeric"
-                placeholder="0"
-                value={transferCredits}
-                onChange={(event) => {
-                  const value = event.target.value.replace(/[^0-9]/g, '').slice(0, 3) || '0';
-                  setTransferCredits(value);
-                  localStorage.setItem('transferCredits', value);
-                }}
-              />
-            </div>
-            </div>
-          </details>
-        </div>
+                    {majorOptions.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
+                  {majorsError && (
+                    <p className="text-xs text-red-600 mt-1">{majorsError}</p>
+                  )}
+                </div>
 
-        <div className="course-pool">
-          <h2>Add Courses to Your Plan</h2>
-          <div className="search-bar">
-            <input
-              type="text"
-              placeholder="Search for a course (e.g., CS 101)"
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              onKeyDown={(event) => {
-                if (event.key === 'Enter') searchCourses();
-              }}
-            />
-            <button type="button" onClick={searchCourses}>
-              Search
-            </button>
-          </div>
-
-          {loading && <div className="loading-indicator">Searching for courses...</div>}
-          {error && <div className="error-message">{error}</div>}
-
-          {!loading && !error && results.length === 0 && (
-            <div className="empty-message">Search for courses above.</div>
-          )}
-
-          <div className="pool-courses" style={{ display: results.length ? 'flex' : 'none' }}>
-            {results.map((course) => (
-              <div
-                className="pool-course"
-                key={`${course.subject}-${course.number}`}
-                draggable
-                onDragStart={handleDragStart(course)}
-              >
-                <h4>
-                  {course.subject} {course.number}
-                </h4>
-                <p>{course.title}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="planner-container">
-          <div className="requirements-panel">
-            <h2>Degree Requirements</h2>
-
-            <div className="requirement-category">
-              <h3>Total Credits</h3>
-              <div
-                className="progress-bar-container"
-                style={{
-                  backgroundColor: '#f0f0f0',
-                  borderRadius: '10px',
-                  height: '20px',
-                  width: '100%',
-                  marginBottom: '20px',
-                }}
-              >
-                <div
-                  style={{
-                    backgroundColor: progressPercent >= 90 ? '#4CAF50' : '#E35D0D',
-                    borderRadius: '10px',
-                    height: '20px',
-                    width: `${progressPercent}%`,
+                <Select
+                  label="Academic Year"
+                  options={academicYearOptions}
+                  placeholder="Select year"
+                  value={academicYear}
+                  onChange={(e) => {
+                    setAcademicYear(e.target.value);
+                    localStorage.setItem('academicYear', e.target.value);
                   }}
-                ></div>
-              </div>
-              <p style={{ fontSize: '18px', textAlign: 'center' }}>
-                {totalCredits} / {totalRequiredCredits} hours
-              </p>
-            </div>
+                />
 
-            <div className="requirement-category">
-              <h3>Major Requirements</h3>
-              <div className="requirement-list">
-                <div className="requirement-item">
-                  <div className="requirement-name">Major Courses</div>
-                  <div className="requirement-status pending">0 courses</div>
-                </div>
-                <div className="requirement-item">
-                  <div className="requirement-name">Technical Electives</div>
-                  <div className="requirement-status pending">0 courses</div>
-                </div>
-              </div>
-            </div>
+                <Input
+                  label="Graduation Year"
+                  placeholder="e.g., 2028"
+                  value={graduationYear}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/[^0-9]/g, '').slice(0, 4);
+                    setGraduationYear(value);
+                    localStorage.setItem('graduationYear', value);
+                  }}
+                />
 
-            <div className="requirement-category">
-              <h3>General Education</h3>
-              <div className="requirement-list">
-                <div className="requirement-item">
-                  <div className="requirement-name">Humanities</div>
-                  <div className="requirement-status pending">0 courses</div>
-                </div>
-                <div className="requirement-item">
-                  <div className="requirement-name">Social Sciences</div>
-                  <div className="requirement-status pending">0 courses</div>
-                </div>
-                <div className="requirement-item">
-                  <div className="requirement-name">Natural Sciences</div>
-                  <div className="requirement-status pending">0 courses</div>
-                </div>
-                <div className="requirement-item">
-                  <div className="requirement-name">Other GenEd</div>
-                  <div className="requirement-status pending">0 courses</div>
-                </div>
+                <Input
+                  label="Transfer Credits"
+                  placeholder="0"
+                  value={transferCredits}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/[^0-9]/g, '').slice(0, 3) || '0';
+                    setTransferCredits(value);
+                    localStorage.setItem('transferCredits', value);
+                  }}
+                />
               </div>
-            </div>
-          </div>
+            )}
+          </Card>
 
-          <div className="semester-container">
-            {semestersByYear.map(([yearIndex, yearSemesters]) => {
-              const yearLabel = yearSemesters[0]?.yearLabel ?? `${yearIndex}th`;
-              const yearCredits = yearSemesters.reduce(
-                (acc, semester) => acc + (semesterCredits.get(semester.id) ?? 0),
-                0,
-              );
-              return (
-                <div className="academic-year" data-year={yearIndex} key={yearIndex}>
-                  <div className="year-header">
-                    <h2>{yearLabel} Year</h2>
-                    <span className="credits">{yearCredits} credits</span>
+          <div className="grid lg:grid-cols-[300px_1fr] gap-6">
+            {/* Left Sidebar - Requirements */}
+            <aside className="space-y-4">
+              <Card>
+                <h2 className="font-semibold text-slate-800 mb-4">
+                  Degree Progress
+                </h2>
+                <ProgressBar
+                  value={totalCredits}
+                  max={totalRequiredCredits}
+                  label="Total Credits"
+                  size="lg"
+                />
+                <p className="text-center text-sm text-slate-500 mt-2">
+                  {totalRequiredCredits - totalCredits > 0
+                    ? `${totalRequiredCredits - totalCredits} credits remaining`
+                    : 'Requirement met!'}
+                </p>
+              </Card>
+
+              <Card>
+                <h3 className="font-semibold text-slate-800 mb-3">
+                  Major Requirements
+                </h3>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between py-2 border-b border-slate-100">
+                    <span className="text-sm text-slate-600">Major Courses</span>
+                    <Badge variant="outline">0 courses</Badge>
                   </div>
-                  <div className="semesters">
-                    {yearSemesters.map((semester) => (
-                      <div className="semester" data-term={semester.term} key={semester.id}>
-                        <h3>{semester.term} Semester</h3>
+                  <div className="flex items-center justify-between py-2">
+                    <span className="text-sm text-slate-600">
+                      Technical Electives
+                    </span>
+                    <Badge variant="outline">0 courses</Badge>
+                  </div>
+                </div>
+              </Card>
+
+              <Card>
+                <h3 className="font-semibold text-slate-800 mb-3">
+                  General Education
+                </h3>
+                <div className="space-y-2">
+                  {['Humanities', 'Social Sciences', 'Natural Sciences', 'Other'].map(
+                    (cat) => (
+                      <div
+                        key={cat}
+                        className="flex items-center justify-between py-2 border-b border-slate-100 last:border-0"
+                      >
+                        <span className="text-sm text-slate-600">{cat}</span>
+                        <Badge variant="outline">0 courses</Badge>
+                      </div>
+                    )
+                  )}
+                </div>
+              </Card>
+
+              {/* Action Buttons */}
+              <div className="flex flex-col gap-2">
+                <Button variant="secondary" size="sm" onClick={refreshCredits}>
+                  Refresh Credits
+                </Button>
+                <Button variant="ghost" size="sm" onClick={resetPlan}>
+                  Reset Plan
+                </Button>
+              </div>
+            </aside>
+
+            {/* Main Content */}
+            <div className="space-y-6">
+              {/* Course Search */}
+              <Card>
+                <h2 className="font-semibold text-slate-800 mb-4">
+                  Search Courses
+                </h2>
+                <div className="flex gap-3">
+                  <Input
+                    placeholder="Search by course code or title (e.g., CS 225)"
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') searchCourses();
+                    }}
+                    className="flex-1"
+                  />
+                  <Button onClick={searchCourses} isLoading={loading}>
+                    Search
+                  </Button>
+                </div>
+
+                {error && (
+                  <p className="text-sm text-red-600 mt-2">{error}</p>
+                )}
+
+                {/* Search Results */}
+                {results.length > 0 && (
+                  <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+                    {results.map((course) => (
+                      <div
+                        key={`${course.subject}-${course.number}`}
+                        draggable
+                        onDragStart={handleDragStart(course)}
+                        className="p-3 bg-blue-50 border border-blue-100 rounded-lg cursor-grab hover:shadow-sm hover:border-blue-200 transition-all active:cursor-grabbing"
+                      >
+                        <div className="font-medium text-blue-900 text-sm">
+                          {course.subject} {course.number}
+                        </div>
+                        <p className="text-xs text-blue-700 truncate mt-0.5">
+                          {course.title}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {!loading && results.length === 0 && !error && (
+                  <p className="text-sm text-slate-500 mt-4 text-center">
+                    Search for courses to add to your plan
+                  </p>
+                )}
+              </Card>
+
+              {/* Semester Grid */}
+              {semestersByYear.map(([yearIndex, yearSemesters]) => {
+                const yearLabel = yearSemesters[0]?.yearLabel ?? `${yearIndex}th`;
+                const yearCredits = yearSemesters.reduce(
+                  (acc, semester) => acc + (semesterCredits.get(semester.id) ?? 0),
+                  0
+                );
+                return (
+                  <div
+                    key={yearIndex}
+                    className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm"
+                  >
+                    {/* Year Header */}
+                    <div className="bg-blue-950 text-white px-5 py-3 flex justify-between items-center">
+                      <h3 className="font-semibold">{yearLabel} Year</h3>
+                      <span className="text-blue-200 text-sm">
+                        {yearCredits} credits
+                      </span>
+                    </div>
+
+                    {/* Semesters */}
+                    <div className="grid sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-slate-100">
+                      {yearSemesters.map((semester) => (
                         <div
-                          className={`course-list ${dragOverId === semester.id ? 'drag-over' : ''}`}
+                          key={semester.id}
+                          className={`p-4 min-h-[200px] transition-colors ${
+                            dragOverId === semester.id
+                              ? 'bg-blue-50 ring-2 ring-inset ring-blue-300'
+                              : ''
+                          }`}
                           onDrop={handleDrop(semester.id)}
                           onDragOver={handleDragOver(semester.id)}
                           onDragLeave={handleDragLeave}
                         >
-                          {(plan[semester.id] || []).map((course) => (
-                            <div
-                              className="added-course"
-                              key={`${semester.id}-${course.subject}-${course.number}`}
-                              draggable
-                              onDragStart={handleDragStart(course, semester.id)}
-                            >
-                              <h4>
-                                {course.subject} {course.number}
-                              </h4>
-                              <p>
-                                {course.title}
-                                <span className="credits-badge">{course.credits ?? 3} hrs</span>
-                              </p>
-                              <button
-                                className="remove-course"
-                                type="button"
-                                onClick={() => removeCourseFromSemester(semester.id, course)}
-                              >
-                                ×
-                              </button>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
+                          <div className="flex items-center justify-between mb-3">
+                            <h4 className="font-medium text-slate-700">
+                              {semester.term}
+                            </h4>
+                            <span className="text-xs text-slate-500">
+                              {semesterCredits.get(semester.id) ?? 0} hrs
+                            </span>
+                          </div>
 
-        <div className="action-buttons">
-          <button className="save-plan-btn" disabled>
-            Save My Course Plan
-          </button>
-          <button className="export-pdf-btn" disabled>
-            Export as PDF
-          </button>
-          <button className="save-plan-btn" type="button" onClick={refreshCredits}>
-            Refresh Credits
-          </button>
-          <button className="reset-plan-btn" type="button" onClick={resetPlan}>
-            Reset Plan
-          </button>
+                          <div className="space-y-2">
+                            {(plan[semester.id] || []).length === 0 && (
+                              <p className="text-sm text-slate-400 text-center py-8">
+                                Drop courses here
+                              </p>
+                            )}
+                            {(plan[semester.id] || []).map((course) => (
+                              <div
+                                key={`${semester.id}-${course.subject}-${course.number}`}
+                                className="group relative p-3 bg-slate-50 border border-slate-200 rounded-lg hover:bg-white hover:shadow-sm transition-all cursor-grab active:cursor-grabbing"
+                                draggable
+                                onDragStart={handleDragStart(course, semester.id)}
+                              >
+                                <div className="flex justify-between items-start gap-2">
+                                  <div className="min-w-0 flex-1">
+                                    <span className="font-medium text-slate-800 text-sm">
+                                      {course.subject} {course.number}
+                                    </span>
+                                    <p className="text-xs text-slate-600 truncate">
+                                      {course.title}
+                                    </p>
+                                  </div>
+                                  <Badge variant="primary" className="shrink-0">
+                                    {course.credits ?? 3} hrs
+                                  </Badge>
+                                </div>
+
+                                <button
+                                  type="button"
+                                  className="absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-xs hover:bg-red-600"
+                                  onClick={() =>
+                                    removeCourseFromSemester(semester.id, course)
+                                  }
+                                  aria-label={`Remove ${course.subject} ${course.number}`}
+                                >
+                                  &times;
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         </div>
       </main>
 
-      <footer className="site-footer">
-        <div className="footer-container">
-          <div className="footer-logo">
-            <img src={logo} alt="CoursePilot Logo" />
-            <p>Navigating your academic journey</p>
-          </div>
-
-          <div className="footer-links">
-            <div className="footer-col">
-              <h4>Features</h4>
-              <ul>
-                <li><a href="/course-explorer">Course Explorer</a></li>
-                <li><a href="/course-planner">Course Planner</a></li>
-              </ul>
-            </div>
-
-            <div className="footer-col">
-              <h4>Resources</h4>
-              <ul>
-                <li><a href="/academic-calendar">Academic Calendar</a></li>
-                <li><a href="/faq">FAQ</a></li>
-              </ul>
-            </div>
-
-            <div className="footer-col">
-              <h4>About</h4>
-              <ul>
-                <li><a href="/privacy-policy">Privacy Policy</a></li>
-                <li><a href="/terms">Terms of Service</a></li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="footer-social">
-            <h4>Connect With Us</h4>
-            <div className="social-icons">
-              <a href="#" className="social-icon" aria-label="Facebook">
-                <i className="fab fa-facebook-f"></i>
-              </a>
-              <a href="#" className="social-icon" aria-label="Twitter">
-                <i className="fab fa-twitter"></i>
-              </a>
-              <a href="#" className="social-icon" aria-label="Instagram">
-                <i className="fab fa-instagram"></i>
-              </a>
-              <a href="#" className="social-icon" aria-label="LinkedIn">
-                <i className="fab fa-linkedin-in"></i>
-              </a>
-            </div>
-          </div>
-        </div>
-
-        <div className="footer-bottom">
-          <p>&copy; 2025 CoursePilot. All rights reserved.</p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

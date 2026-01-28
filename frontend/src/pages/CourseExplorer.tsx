@@ -10,9 +10,12 @@ import {
   type ChartConfiguration,
 } from 'chart.js';
 import { supabase } from '../lib/supabase';
-import '../styles/course_explore.css';
-import '../styles/footer.css';
-import logo from '../assets/logo.png';
+import { Header } from '../components/layout/Header';
+import { Footer } from '../components/layout/Footer';
+import { Button } from '../components/ui/Button';
+import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/Card';
+import { Input } from '../components/ui/Input';
+import { Badge } from '../components/ui/Badge';
 
 Chart.register(BarController, BarElement, CategoryScale, LinearScale, Tooltip, Title);
 
@@ -76,12 +79,12 @@ type GradeChartData = {
 };
 
 function getGradeColor(grade: string) {
-  if (grade.startsWith('A')) return 'rgba(75, 192, 75, 0.7)';
-  if (grade.startsWith('B')) return 'rgba(54, 162, 235, 0.7)';
-  if (grade.startsWith('C')) return 'rgba(255, 206, 86, 0.7)';
-  if (grade.startsWith('D')) return 'rgba(255, 159, 64, 0.7)';
-  if (grade === 'F') return 'rgba(255, 99, 132, 0.7)';
-  return 'rgba(201, 203, 207, 0.7)';
+  if (grade.startsWith('A')) return 'rgba(91, 124, 245, 0.8)'; // blue-500
+  if (grade.startsWith('B')) return 'rgba(74, 99, 224, 0.8)'; // blue-600
+  if (grade.startsWith('C')) return 'rgba(59, 79, 199, 0.7)'; // blue-700
+  if (grade.startsWith('D')) return 'rgba(148, 163, 184, 0.7)'; // slate-400
+  if (grade === 'F') return 'rgba(239, 68, 68, 0.7)'; // red
+  return 'rgba(203, 213, 225, 0.7)'; // slate-300
 }
 
 export default function CourseExplorer() {
@@ -108,25 +111,31 @@ export default function CourseExplorer() {
             label: 'Number of Students',
             data: gradeData.counts,
             backgroundColor: backgroundColors,
-            borderColor: backgroundColors.map((color) => color.replace('0.7', '1')),
+            borderColor: backgroundColors.map((color) => color.replace('0.7', '1').replace('0.8', '1')),
             borderWidth: 1,
+            borderRadius: 4,
           },
         ],
       },
       options: {
         responsive: true,
+        maintainAspectRatio: true,
         scales: {
           y: {
             beginAtZero: true,
-            title: {
-              display: true,
-              text: 'Number of Students',
+            grid: {
+              color: 'rgba(226, 232, 240, 0.5)',
+            },
+            ticks: {
+              color: '#64748b',
             },
           },
           x: {
-            title: {
-              display: true,
-              text: 'Grade',
+            grid: {
+              display: false,
+            },
+            ticks: {
+              color: '#64748b',
             },
           },
         },
@@ -135,6 +144,11 @@ export default function CourseExplorer() {
             display: false,
           },
           tooltip: {
+            backgroundColor: '#1e293b',
+            titleColor: '#fff',
+            bodyColor: '#e2e8f0',
+            padding: 12,
+            cornerRadius: 8,
             callbacks: {
               label: (context) => {
                 const label = context.dataset.label || '';
@@ -246,148 +260,169 @@ export default function CourseExplorer() {
     }
   };
 
+  const handleKeyDown = (event: React.KeyboardEvent) => {
+    if (event.key === 'Enter') searchCourse();
+  };
+
   return (
-    <div>
-      <header>
-        <div className="logo">
-          <a href="/">
-            <img src={logo} alt="CoursePilot Logo" />
-          </a>
-        </div>
-        <nav className="navbar">
-          <a href="/">Course Planner</a>
-          <a href="/course-explorer">Course Explorer</a>
-        </nav>
-      </header>
+    <div className="min-h-screen flex flex-col">
+      <Header />
 
-      <main className="container">
-        <h1 className="main-title">Course Search</h1>
+      <main className="flex-1 py-8 sm:py-12">
+        {/* Background gradient */}
+        <div className="fixed inset-0 -z-10 bg-gradient-to-br from-blue-50 via-slate-50 to-blue-100/30" />
 
-        <label htmlFor="course">What course are you looking for?</label>
-        <input
-          type="text"
-          id="course"
-          placeholder="Type in your course (e.g. ECE)"
-          value={department}
-          onChange={(event) => setDepartment(event.target.value)}
-          onKeyDown={(event) => {
-            if (event.key === 'Enter') searchCourse();
-          }}
-        />
-
-        <label htmlFor="course-number">What is the course number?</label>
-        <input
-          type="text"
-          id="course-number"
-          placeholder="Type in your course number (e.g. 101)"
-          value={courseNumber}
-          onChange={(event) => setCourseNumber(event.target.value)}
-          onKeyDown={(event) => {
-            if (event.key === 'Enter') searchCourse();
-          }}
-        />
-
-        <div className="selection">
-          <button className="search-btn" type="button" onClick={searchCourse}>
-            Find Course
-          </button>
-        </div>
-
-        {loading && <div className="loading">Searching for course information...</div>}
-
-        {error && <div className="error-message">{error}</div>}
-
-        {courseInfo && (
-          <div className="course-result">
-            <h2>
-              {department.toUpperCase()} {courseNumber.toUpperCase()}: {courseInfo.title}
-            </h2>
-            <p>
-              <span className="label">Term:</span> {courseInfo.term}
-            </p>
-            <p>
-              <span className="label">Description:</span> {courseInfo.description}
-            </p>
-            <p>
-              <span className="label">Prerequisites:</span> {courseInfo.prerequisite}
-            </p>
-            <div className="gpa-highlight">
-              <p>
-                <span className="label">Average GPA:</span> {gradeData ? gradeData.gpa : 'Not available'}
-              </p>
+        <div className="max-w-3xl mx-auto px-4 sm:px-6">
+          {/* Page Header */}
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-blue-100 text-blue-700 rounded-full text-sm font-medium mb-4">
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              10,000+ Courses
             </div>
-
-            {gradeData && (
-              <div className="chart-container">
-                <h3 className="chart-title">
-                  Grade Distribution for {department.toUpperCase()} {courseNumber.toUpperCase()}
-                </h3>
-                <canvas id="grade-chart" ref={chartRef}></canvas>
-                <p className="chart-info">
-                  Total Students: {gradeData.totalStudents} | Average GPA: {gradeData.gpa}
-                </p>
-              </div>
-            )}
+            <h1 className="text-3xl font-bold text-slate-800">Course Explorer</h1>
+            <p className="mt-2 text-slate-600">
+              Find detailed information about any UIUC course
+            </p>
           </div>
-        )}
+
+          {/* Search Card */}
+          <Card className="mb-8">
+            <div className="grid sm:grid-cols-2 gap-4 mb-6">
+              <Input
+                label="Department"
+                placeholder="e.g., CS, ECE, MATH"
+                value={department}
+                onChange={(e) => setDepartment(e.target.value)}
+                onKeyDown={handleKeyDown}
+              />
+              <Input
+                label="Course Number"
+                placeholder="e.g., 101, 225, 374"
+                value={courseNumber}
+                onChange={(e) => setCourseNumber(e.target.value)}
+                onKeyDown={handleKeyDown}
+              />
+            </div>
+            <Button
+              onClick={searchCourse}
+              disabled={loading}
+              isLoading={loading}
+              className="w-full sm:w-auto"
+            >
+              {loading ? 'Searching...' : 'Search Course'}
+            </Button>
+          </Card>
+
+          {/* Error Message */}
+          {error && (
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-red-700 text-sm">{error}</p>
+            </div>
+          )}
+
+          {/* Loading State */}
+          {loading && (
+            <Card className="text-center py-12">
+              <div className="animate-spin h-8 w-8 border-2 border-blue-600 border-t-transparent rounded-full mx-auto mb-4" />
+              <p className="text-slate-600">Searching for course information...</p>
+            </Card>
+          )}
+
+          {/* Course Results */}
+          {courseInfo && !loading && (
+            <Card hover>
+              <CardHeader>
+                <div className="flex flex-wrap items-start justify-between gap-2">
+                  <CardTitle className="text-xl">
+                    {department.toUpperCase()} {courseNumber.toUpperCase()}:{' '}
+                    {courseInfo.title}
+                  </CardTitle>
+                  {gradeData && (
+                    <Badge variant="primary" className="text-sm px-3 py-1">
+                      GPA: {gradeData.gpa.toFixed(2)}
+                    </Badge>
+                  )}
+                </div>
+              </CardHeader>
+
+              <CardContent className="space-y-4">
+                <div>
+                  <h4 className="text-sm font-medium text-slate-500 mb-1">Term</h4>
+                  <p className="text-slate-800">{courseInfo.term}</p>
+                </div>
+
+                <div>
+                  <h4 className="text-sm font-medium text-slate-500 mb-1">
+                    Description
+                  </h4>
+                  <p className="text-slate-700 leading-relaxed">
+                    {courseInfo.description}
+                  </p>
+                </div>
+
+                <div>
+                  <h4 className="text-sm font-medium text-slate-500 mb-1">
+                    Prerequisites
+                  </h4>
+                  <p className="text-slate-700">
+                    {courseInfo.prerequisite || 'None'}
+                  </p>
+                </div>
+
+                {/* Grade Distribution Chart */}
+                {gradeData && (
+                  <div className="mt-6 pt-6 border-t border-slate-100">
+                    <h4 className="text-sm font-medium text-slate-800 mb-4">
+                      Grade Distribution
+                    </h4>
+                    <div className="bg-slate-50 rounded-lg p-4">
+                      <canvas ref={chartRef} />
+                    </div>
+                    <div className="flex justify-center gap-6 mt-4 text-sm text-slate-600">
+                      <span>
+                        Total Students:{' '}
+                        <strong className="text-slate-800">
+                          {gradeData.totalStudents.toLocaleString()}
+                        </strong>
+                      </span>
+                      <span>
+                        Average GPA:{' '}
+                        <strong className="text-slate-800">
+                          {gradeData.gpa.toFixed(2)}
+                        </strong>
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Empty State */}
+          {!courseInfo && !loading && !error && (
+            <div className="text-center py-12 text-slate-500">
+              <svg
+                className="w-16 h-16 mx-auto mb-4 text-slate-300"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1}
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
+              <p>Enter a department and course number to search</p>
+            </div>
+          )}
+        </div>
       </main>
 
-      <footer className="site-footer">
-        <div className="footer-container">
-          <div className="footer-logo">
-            <img src={logo} alt="CoursePilot Logo" />
-            <p>Navigating your academic journey</p>
-          </div>
-
-          <div className="footer-links">
-            <div className="footer-col">
-              <h4>Features</h4>
-              <ul>
-                <li><a href="/course-explorer">Course Explorer</a></li>
-                <li><a href="/">Course Planner</a></li>
-              </ul>
-            </div>
-
-            <div className="footer-col">
-              <h4>Resources</h4>
-              <ul>
-                <li><a href="/academic-calendar">Academic Calendar</a></li>
-                <li><a href="/faq">FAQ</a></li>
-              </ul>
-            </div>
-
-            <div className="footer-col">
-              <h4>About</h4>
-              <ul>
-                <li><a href="/privacy-policy">Privacy Policy</a></li>
-                <li><a href="/terms">Terms of Service</a></li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="footer-social">
-            <h4>Connect With Us</h4>
-            <div className="social-icons">
-              <a href="#" className="social-icon" aria-label="Facebook">
-                <i className="fab fa-facebook-f"></i>
-              </a>
-              <a href="#" className="social-icon" aria-label="Twitter">
-                <i className="fab fa-twitter"></i>
-              </a>
-              <a href="#" className="social-icon" aria-label="Instagram">
-                <i className="fab fa-instagram"></i>
-              </a>
-              <a href="#" className="social-icon" aria-label="LinkedIn">
-                <i className="fab fa-linkedin-in"></i>
-              </a>
-            </div>
-          </div>
-        </div>
-
-        <div className="footer-bottom">
-          <p>&copy; 2025 CoursePilot. All rights reserved.</p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }
