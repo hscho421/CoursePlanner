@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frequently Asked Questions - CoursePilot</title>
+    <link rel="stylesheet" href="../css/mainpage.css">
+    <link rel="stylesheet" href="../css/footer.css">
+    <style>
+        /* FAQ specific styles */
+        .faq-container {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+
+        .faq-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .faq-header h1 {
+            color: #0D1B40;
+            margin-bottom: 15px;
+        }
+
+        .faq-header p {
+            color: #555;
+            font-size: 18px;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .search-container {
+            max-width: 600px;
+            margin: 30px auto;
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 15px 20px;
+            font-size: 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #6987E8;
+            box-shadow: 0 2px 15px rgba(105, 135, 232, 0.2);
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #888;
+        }
+
+        .faq-categories {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 40px;
+        }
+
+        .category-btn {
+            background-color: #f5f5f5;
+            border: 1px solid #ddd;
+            padding: 8px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            color: #333;
+            transition: all 0.3s;
+        }
+
+        .category-btn:hover {
+            background-color: #e0e0e0;
+        }
+
+        .category-btn.active {
+            background-color: #0D1B40;
+            color: white;
+            border-color: #0D1B40;
+        }
+
+        .faq-list {
+            margin-bottom: 40px;
+        }
+
+        .faq-section {
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            color: #0D1B40;
+            font-size: 22px;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #6987E8;
+        }
+
+        .faq-item {
+            background-color: white;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+        }
+
+        .faq-question {
+            padding: 20px;
+            font-weight: bold;
+            color: #0D1B40;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background-color 0.3s;
+        }
+
+        .faq-question:hover {
+            background-color: #f8f9fa;
+        }
+
+        .faq-question::after {
+            content: '+';
+            font-size: 20px;
+            color: #6987E8;
+        }
+
+        .faq-item.active .faq-question {
+            background-color: #f0f4ff;
+        }
+
+        .faq-item.active .faq-question::after {
+            content: '−';
+        }
+
+        .faq-answer {
+            padding: 0 20px;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out, padding 0.3s ease;
+            line-height: 1.6;
+            color: #555;
+        }
+
+        .faq-item.active .faq-answer {
+            padding: 0 20px 20px;
+            max-height: 1000px; /* Adjust as needed */
+        }
+
+        .faq-contact {
+            background-color: #f0f4ff;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            margin-top: 40px;
+        }
+
+        .faq-contact h3 {
+            color: #0D1B40;
+            margin-bottom: 15px;
+        }
+
+        .contact-btn {
+            display: inline-block;
+            background-color: #6987E8;
+            color: white;
+            padding: 12px 25px;
+            border-radius: 25px;
+            text-decoration: none;
+            margin-top: 15px;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+
+        .contact-btn:hover {
+            background-color: #5A78D9;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 40px 20px;
+            color: #555;
+            font-style: italic;
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .faq-categories {
+                gap: 10px;
+            }
+            
+            .category-btn {
+                padding: 6px 12px;
+                font-size: 14px;
+            }
+            
+            .faq-question {
+                padding: 15px;
+                font-size: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <a href="../html/mainpage.html"><img src="../asset/logo.png" alt="CoursePilot Logo"></a>
+        </div>
+        <nav class="navbar">
+            <a href="../html/major_select.html">Course Planner</a>
+            <a href="../html/course_explore.html">Course Explorer</a>
+        </nav>
+    </header>
+
+    <main>
+        <div class="faq-container">
+            <div class="faq-header">
+                <h1>Frequently Asked Questions</h1>
+                <p>Find answers to common questions about using CoursePilot to plan your academic journey.</p>
+            </div>
+            
+            <div class="search-container">
+                <input type="text" class="search-input" id="faq-search" placeholder="Search for answers...">
+                <span class="search-icon">🔍</span>
+            </div>
+            
+            <div class="faq-categories">
+                <button class="category-btn active" data-category="all">All Questions</button>
+                <button class="category-btn" data-category="general">General</button>
+                <button class="category-btn" data-category="planner">Course Planner</button>
+                <button class="category-btn" data-category="explorer">Course Explorer</button>
+            </div>
+            
+            <div class="faq-list">
+                <!-- General Questions Section -->
+                <div class="faq-section" data-category="general">
+                    <h2 class="section-title">General Questions</h2>
+                    
+                    <div class="faq-item">
+                        <div class="faq-question">What is CoursePilot and how does it help me?</div>
+                        <div class="faq-answer">
+                            <p>CoursePilot is a comprehensive course planning and exploration tool designed specifically for college students. It helps you:</p>
+                            <ul>
+                                <li>Create a personalized 4-year academic plan</li>
+                                <li>Track your progress toward degree requirements</li>
+                                <li>Explore course offerings and view detailed information about each course</li>
+                                <li>Make informed decisions about which courses to take each semester</li>
+                            </ul>
+                            <p>Our goal is to simplify the course selection process and help you graduate on time with all requirements fulfilled.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="faq-item">
+                        <div class="faq-question">Is CoursePilot officially affiliated with my university?</div>
+                        <div class="faq-answer">
+                            <p>CoursePilot is currently focused on serving students at the University of Illinois Urbana-Champaign (UIUC), particularly within the Grainger College of Engineering. While we use official course data from the university, CoursePilot is an independent platform and not officially affiliated with or endorsed by UIUC.</p>
+                            <p>We always recommend confirming your course choices with your academic advisor before registration.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="faq-item">
+                        <div class="faq-question">Do I need to create an account to use CoursePilot?</div>
+                        <div class="faq-answer">
+                            <p>No, you don't need to create an account to use the basic features of CoursePilot. You can access the Course Explorer and create a course plan without logging in.</p>
+                            <p>However, creating an account gives you access to additional features such as:</p>
+                            <ul>
+                                <li>Saving multiple course plans</li>
+                                <li>Sharing your plan with academic advisors</li>
+                                <li>Receiving email notifications about course changes</li>
+                                <li>Synchronizing your plan across devices</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="faq-item">
+                        <div class="faq-question">Is CoursePilot free to use?</div>
+                        <div class="faq-answer">
+                            <p>Yes, CoursePilot is completely free for all students. We believe in making educational planning tools accessible to everyone.</p>
+                            <p>We're able to maintain this free service through university partnerships and minimal advertisements on the platform.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Course Planner Questions Section -->
+                <div class="faq-section" data-category="planner">
+                    <h2 class="section-title">Course Planner Questions</h2>
+                    
+                    <div class="faq-item">
+                        <div class="faq-question">How do I create a 4-year plan?</div>
+                        <div class="faq-answer">
+                            <p>To create a 4-year plan, follow these steps:</p>
+                            <ol>
+                                <li>Go to the Course Planner page from the main navigation</li>
+                                <li>Select your major from the dropdown menu</li>
+                                <li>Choose your current academic year (freshman, sophomore, etc.)</li>
+                                <li>Select your expected graduation year</li>
+                                <li>Enter any transfer credits you have</li>
+                                <li>Click "Create My Course Plan"</li>
+                            </ol>
+                            <p>You'll be taken to your personalized planner where you can add courses to each semester of your academic career. The system will automatically track your progress toward graduation requirements.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="faq-item">
+                        <div class="faq-question">Can I save multiple course plans?</div>
+                        <div class="faq-answer">
+                            <p>Yes, once you create an account, you can save multiple course plans. This is especially useful if you're considering different majors, minors, or course sequences.</p>
+                            <p>To manage your saved plans:</p>
+                            <ol>
+                                <li>Log in to your CoursePilot account</li>
+                                <li>Go to "My Plans" in your account dashboard</li>
+                                <li>Here you can view, edit, rename, or delete your saved plans</li>
+                                <li>To create a new plan, simply start fresh from the Course Planner page</li>
+                            </ol>
+                        </div>
+                    </div>
+                    
+                    <div class="faq-item">
+                        <div class="faq-question">How do I know if I'm meeting all my graduation requirements?</div>
+                        <div class="faq-answer">
+                            <p>The Course Planner automatically tracks your progress toward graduation requirements in the Requirements Panel on the left side of your plan. This includes:</p>
+                            <ul>
+                                <li>Total credit hours (showing your progress toward the 128-hour requirement)</li>
+                                <li>Major courses completed</li>
+                                <li>Technical electives</li>
+                                <li>General education requirements by category (humanities, social sciences, etc.)</li>
+                            </ul>
+                            <p>Requirements that are complete will be marked in green, those in progress will appear in orange, and those not yet started will be in the default color.</p>
+                            <p>Remember that while CoursePilot strives for accuracy, you should always verify your graduation requirements with your academic advisor.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="faq-item">
+                        <div class="faq-question">How do I add transfer credits to my plan?</div>
+                        <div class="faq-answer">
+                            <p>You can add transfer credits when you first set up your course plan:</p>
+                            <ol>
+                                <li>On the Major Selection page, enter the number of credit hours transferred in the "Transfer Credits" field</li>
+                                <li>These credits will automatically be applied to your total credit count</li>
+                            </ol>
+                            <p>If you need to edit your transfer credits after creating your plan:</p>
+                            <ol>
+                                <li>Go to "Account Settings"</li>
+                                <li>Select "Academic Profile"</li>
+                                <li>Update your transfer credits</li>
+                                <li>Save changes</li>
+                            </ol>
+                            <p>Note: Currently, CoursePilot only tracks the total number of transfer credits. For specific course equivalencies, please consult with your academic advisor.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="faq-item">
+                        <div class="faq-question">Can I share my course plan with my academic advisor?</div>
+                        <div class="faq-answer">
+                            <p>Yes, you can share your course plan with your academic advisor or others in several ways:</p>
+                            <ul>
+                                <li><strong>Export as PDF:</strong> Click the "Export as PDF" button in your course plan to download a well-formatted PDF that you can email or print</li>
+                                <li><strong>Direct Share Link:</strong> If you have an account, you can generate a secure link to your plan that you can share via email</li>
+                                <li><strong>Email Summary:</strong> Send a summary of your plan directly to your advisor's email address through the system</li>
+                            </ul>
+                            <p>Sharing your plan with your advisor before registration helps ensure that you're on the right track and can make any necessary adjustments early.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Course Explorer Questions Section -->
+                <div class="faq-section" data-category="explorer">
+                    <h2 class="section-title">Course Explorer Questions</h2>
+                    
+                    <div class="faq-item">
+                        <div class="faq-question">How do I search for courses by requirement type?</div>
+                        <div class="faq-answer">
+                            <p>The Course Explorer allows you to search for courses in several ways:</p>
+                            <ol>
+                                <li>Enter the department code (e.g., CS, ECE) in the first field</li>
+                                <li>Enter the course number (e.g., 101, 225) in the second field</li>
+                                <li>Click "Find Course" to see detailed information</li>
+                            </ol>
+                            <p>For a more advanced search by requirement type, use the filters available in the full search page:</p>
+                            <ol>
+                                <li>Click on "Advanced Search" below the basic search fields</li>
+                                <li>Select specific requirement types from the dropdown menu (e.g., Humanities, Social Sciences, Technical Electives)</li>
+                                <li>Apply additional filters as needed</li>
+                                <li>View the filtered results below</li>
+                            </ol>
+                        </div>
+                    </div>
+                    
+                    <div class="faq-item">
+                        <div class="faq-question">What information can I see about each course?</div>
+                        <div class="faq-answer">
+                            <p>When you search for a specific course, you'll see comprehensive information including:</p>
+                            <ul>
+                                <li><strong>Basic Details:</strong> Course title, department, number of credit hours</li>
+                                <li><strong>Course Description:</strong> A detailed overview of the course content</li>
+                                <li><strong>Prerequisites:</strong> Any courses you need to take before this one</li>
+                                <li><strong>Term Availability:</strong> When the course is typically offered (Fall/Spring/Summer)</li>
+                                <li><strong>Average GPA:</strong> Historical average GPA for the course</li>
+                                <li><strong>Grade Distribution:</strong> Visual breakdown of grades earned by past students</li>
+                                <li><strong>Requirements Fulfilled:</strong> Which degree requirements this course satisfies</li>
+                            </ul>
+                            <p>This information helps you make informed decisions about your course selections.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="faq-item">
+                        <div class="faq-question">Can I filter courses by semester availability?</div>
+                        <div class="faq-answer">
+                            <p>Yes, you can filter courses by semester availability using the advanced search options:</p>
+                            <ol>
+                                <li>Click on "Advanced Search" below the main search fields</li>
+                                <li>Under "Term Availability," select the semester(s) you're interested in (Fall, Spring, Summer)</li>
+                                <li>Apply any other filters you want</li>
+                                <li>View the filtered results that match your criteria</li>
+                            </ol>
+                            <p>This is particularly useful when planning future semesters or looking for courses offered during summer terms.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="faq-item">
+                        <div class="faq-question">How accurate is the course grade information?</div>
+                        <div class="faq-answer">
+                            <p>The grade distribution and average GPA information displayed in Course Explorer is based on historical data from previous academic years. We update this information annually with the latest available data.</p>
+                            <p>While this information provides valuable insights into the typical grades earned in a course, please keep in mind:</p>
+                            <ul>
+                                <li>Course difficulty can vary by instructor and semester</li>
+                                <li>Grade distributions represent historical averages and not guaranteed outcomes</li>
+                                <li>Your individual performance may differ based on your specific strengths, study habits, and circumstances</li>
+                            </ul>
+                            <p>We source this data from official university records to ensure the highest accuracy possible.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Technical Support Section -->
+                
+            </div>
+            
+            <div id="no-results" class="no-results">
+                <p>No matching questions found. Please try another search term or browse the categories.</p>
+            </div>
+            
+        
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="footer-container">
+            <div class="footer-logo">
+                <img src="../asset/logo.png" alt="CoursePilot Logo">
+                <p>Navigating your academic journey</p>
+            </div>
+            
+            <div class="footer-links">
+                <div class="footer-col">
+                    <h4>Features</h4>
+                    <ul>
+                        <li><a href="../html/course_explore.html">Course Explorer</a></li>
+                        <li><a href="../html/major_select.html">Course Planner</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-col">
+                    <h4>Resources</h4>
+                    <ul>
+                        <li><a href="../html/academic_calendar.html">Academic Calendar</a></li>
+                        <li><a href="../html/faq.html">FAQ</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-col">
+                    <h4>About</h4>
+                    <ul>
+                        <li><a href="../html/privacy_policy.html">Privacy Policy</a></li>
+                        <li><a href="../html/terms.html">Terms of Service</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="footer-social">
+                <h4>Connect With Us</h4>
+                <div class="social-icons">
+                    <a href="#" class="social-icon"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" class="social-icon"><i class="fab fa-twitter"></i></a>
+                    <a href="#" class="social-icon"><i class="fab fa-instagram"></i></a>
+                    <a href="#" class="social-icon"><i class="fab fa-linkedin-in"></i></a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer-bottom">
+            <p>&copy; 2025 CoursePilot. All rights reserved.</p>
+        </div>
+    </footer>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Toggle FAQ answers
+            const faqQuestions = document.querySelectorAll('.faq-question');
+            
+            faqQuestions.forEach(question => {
+                question.addEventListener('click', function() {
+                    // Toggle active class on the parent faq-item
+                    const faqItem = this.parentElement;
+                    faqItem.classList.toggle('active');
+                });
+            });
+            
+            // Category filtering
+            const categoryButtons = document.querySelectorAll('.category-btn');
+            const faqSections = document.querySelectorAll('.faq-section');
+            
+            categoryButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // Remove active class from all buttons
+                    categoryButtons.forEach(btn => btn.classList.remove('active'));
+                    
+                    // Add active class to clicked button
+                    this.classList.add('active');
+                    
+                    const category = this.getAttribute('data-category');
+                    
+                    // Show/hide sections based on category
+                    if (category === 'all') {
+                        faqSections.forEach(section => {
+                            section.style.display = 'block';
+                        });
+                    } else {
+                        faqSections.forEach(section => {
+                            if (section.getAttribute('data-category') === category) {
+                                section.style.display = 'block';
+                            } else {
+                                section.style.display = 'none';
+                            }
+                        });
+                    }
+                    
+                    // Clear search input when changing categories
+                    document.getElementById('faq-search').value = '';
+                    
+                    // Hide no results message
+                    document.getElementById('no-results').style.display = 'none';
+                });
+            });
+            
+            // Search functionality
+            const searchInput = document.getElementById('faq-search');
+            const noResults = document.getElementById('no-results');
+            
+            searchInput.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase().trim();
+                
+                if (searchTerm === '') {
+                    // If search is empty, reset to current category view
+                    const activeCategory = document.querySelector('.category-btn.active').getAttribute('data-category');
+                    
+                    if (activeCategory === 'all') {
+                        faqSections.forEach(section => {
+                            section.style.display = 'block';
+                        });
+                        
+                        // Show all items
+                        document.querySelectorAll('.faq-item').forEach(item => {
+                            item.style.display = 'block';
+                        });
+                    } else {
+                        faqSections.forEach(section => {
+                            if (section.getAttribute('data-category') === activeCategory) {
+                                section.style.display = 'block';
+                                
+                                // Show all items in this section
+                                section.querySelectorAll('.faq-item').forEach(item => {
+                                    item.style.display = 'block';
+                                });
+                            } else {
+                                section.style.display = 'none';
+                            }
+                        });
+                    }
+                    
+                    noResults.style.display = 'none';
+                    return;
+                }
+                
+                // Show all sections when searching
+                faqSections.forEach(section => {
+                    section.style.display = 'block';
+                });
+                
+                // Search in questions
+                const faqItems = document.querySelectorAll('.faq-item');
+                let matchFound = false;
+                
+                faqItems.forEach(item => {
+                    const question = item.querySelector('.faq-question').textContent.toLowerCase();
+                    const answer = item.querySelector('.faq-answer').textContent.toLowerCase();
+                    
+                    if (question.includes(searchTerm) || answer.includes(searchTerm)) {
+                        item.style.display = 'block';
+                        matchFound = true;
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+                
+                // Show/hide sections based on whether they have any visible items
+                faqSections.forEach(section => {
+                    const visibleItems = Array.from(section.querySelectorAll('.faq-item')).filter(item => {
+                        return item.style.display !== 'none';
+                    });
+                    
+                    section.style.display = visibleItems.length > 0 ? 'block' : 'none';
+                });
+                
+                // Show "no results" message if needed
+                noResults.style.display = matchFound ? 'none' : 'block';
+            });
+        });
+    </script>
+</body>
+</html>
