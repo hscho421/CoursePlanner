@@ -14,6 +14,7 @@ def test_uiuc_api(department, course_number, year="2024", semester="fall", verbo
         semester (str): Semester - "fall", "spring", or "summer" (default: "fall")
         verbose (bool): Print detailed information
     
+        
     Returns:
         dict: Test results with status, data, and any errors
     """
