@@ -1,6 +1,6 @@
 # CoursePlanner 🎓
 
-**CoursePilot** is a responsive and interactive fullstack web application designed to help university students efficiently plan their academic journey. It combines a course explorer, a four-year course planner, and an academic calendar tailored for engineering majors at UIUC.
+**CoursePilot** is a responsive and interactive web application designed to help university students efficiently plan their academic journey. It combines a course explorer, a four-year course planner, and an academic calendar tailored for engineering majors at UIUC.
 
 ## 🌟 Features
 
@@ -8,13 +8,13 @@
 - Search for any course by department and number.
 - View term offerings, descriptions, prerequisites, and average GPA.
 - Grade distribution visualized with Chart.js.
-- Real-time data fetched from a Flask-based backend API.
+- Real-time data fetched from Supabase (Postgres + Edge Function).
 
 ### 🧭 Course Planner
 - Drag-and-drop interface to organize courses by semester.
 - Displays real-time progress toward major, minor, and general education requirements.
 - Supports transfer credit input.
-- Save and export course plans as PDF.
+- Save plans locally (localStorage).
 
 ### 📆 Academic Calendar
 - Semester-specific events with category filters (registration, deadlines, academic events, holidays).
@@ -24,11 +24,10 @@
 
 ## 🛠️ Tech Stack
 
-- **Frontend**: HTML5, CSS3, Vanilla JavaScript
-- **Backend**: Python Flask
-- **Database**: AWS MySQL RDS
+- **Frontend**: React + TypeScript (Vite)
+- **Backend**: Supabase Edge Functions
+- **Database**: Supabase Postgres
 - **Visualization**: Chart.js (for GPA distribution)
-- **PDF Export**: jsPDF + html2canvas
 - **UX Enhancements**: Dynamic styling, animations, responsive layout
 
 ---
@@ -37,8 +36,8 @@
 
 ### 🔧 Prerequisites
 
-- Python 3.x
-- Flask
+- Node.js + npm
+- Supabase project
 
 ### 💻 Local Setup
 
@@ -48,19 +47,40 @@
    cd courseplanner
    ```
 
-2. Install Python dependencies:
+2. Install frontend dependencies:
    ```bash
-   pip install -r requirements.txt
+   cd frontend
+   npm install
    ```
 
-3. Run the backend server:
+3. Create `frontend/.env.local`:
    ```bash
-   python app.py
+   VITE_SUPABASE_URL=YOUR_SUPABASE_URL
+   VITE_SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
    ```
 
-4. Open `html/mainpage.html` in your browser to explore the app.
+4. Run the frontend:
+   ```bash
+   npm run dev
+   ```
 
-> 🔧 Make sure your Flask server is running to fetch course data and grade distributions.
+> 🔧 The deployed Supabase Edge Function `uiuc-course` is required for course details and credits.
+
+### 🧩 Supabase Setup
+
+Run these SQL scripts in Supabase:
+- `supabase/views.sql` (GPA view)
+- `supabase/majors.sql` (Majors seed)
+- `supabase/rls.sql` (RLS policies)
+
+Deploy the Edge Function:
+```bash
+supabase functions deploy uiuc-course
+```
+
+### 🗂️ Legacy Files
+
+Legacy Python/Flask and raw database artifacts live in `legacy/` for reference.
 
 ---
 
